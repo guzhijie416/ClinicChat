@@ -39,6 +39,9 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   Use the provided information about the clinic to answer the question.
   If the question is not related to the clinic, use your general knowledge to answer.
 
+  If the user asks about booking an appointment, wanting to schedule a session, or something similar,
+  your answer should be: "You can book a session by going to the booking page. Just click the 'Book a Session' button on the home page or go to the /book page."
+
   Clinic Name: {{{clinicName}}}
   Clinic Address: {{{clinicAddress}}}
   Clinic Hours: {{{clinicHours}}}
