@@ -1,3 +1,4 @@
+
 "use server";
 
 import { z } from "zod";
@@ -26,6 +27,7 @@ const clinicSchema = z.object({
     startTime: z.string().min(1, "Start time is required."),
   })),
   faq: z.array(z.object({
+    id: z.string().optional(),
     question: z.string().min(1, "FAQ question cannot be empty."),
     answer: z.string().min(1, "FAQ answer cannot be empty."),
   })),
@@ -52,3 +54,5 @@ export async function saveClinicData(formData: unknown) {
     }
   }
 }
+
+    

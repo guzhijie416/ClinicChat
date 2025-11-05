@@ -1,3 +1,4 @@
+
 export type Staff = { 
   id: string;
   name: string; 
@@ -17,6 +18,12 @@ export type Session = {
   startTime: string; // ISO string
 };
 
+export type FAQ = {
+  id?: string;
+  question: string;
+  answer: string;
+};
+
 export type ClinicData = {
   name: string;
   address: string;
@@ -25,7 +32,7 @@ export type ClinicData = {
   staff: Staff[];
   massageServices: MassageService[];
   sessions: Session[];
-  faq: { question: string; answer: string }[];
+  faq: FAQ[];
 };
 
 export type Message = {
@@ -33,3 +40,5 @@ export type Message = {
   content: string;
   role: 'user' | 'assistant';
 };
+
+    
