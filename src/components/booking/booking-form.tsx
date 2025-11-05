@@ -23,8 +23,6 @@ import {
 import type { ClinicData } from '@/types';
 import { submitBooking } from '@/app/actions/booking';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { useFormState } from 'react-dom';
-import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 const bookingFormSchema = z.object({
@@ -50,19 +48,19 @@ export function BookingForm({ clinicData }: BookingFormProps) {
   });
 
   const { toast } = useToast();
-
   const { formState } = form;
+
+  const handleFormSubmit = async (formData: FormData) => {
+    const isValid = await form.trigger();
+    if (isValid) {
+      await submitBooking(formData);
+    }
+  };
 
   return (
     <Card>
       <Form {...form}>
-        <form action={async (formData: FormData) => {
-          // Manually trigger validation before submitting
-          const isValid = await form.trigger();
-          if (isValid) {
-            await submitBooking(formData);
-          }
-        }}>
+        <form action={handleFormSubmit}>
             <CardContent className="space-y-6 pt-6">
               <FormField
                 control={form.control}
