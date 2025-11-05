@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { addMinutes, isAfter, format } from "date-fns";
+import { addMinutes, isAfter } from "date-fns";
 
 const clinicFormSchema = z.object({
   name: z.string().min(1, "Clinic name is required."),
@@ -71,7 +71,7 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
       staff: defaultValues.staff?.map(s => ({...s, id: s.id || generateFieldId() })) || [],
       massageServices: defaultValues.massageServices?.map(s => ({...s, id: s.id || generateFieldId() })) || [],
       sessions: defaultValues.sessions?.map(s => ({...s, id: s.id || generateFieldId() })) || [],
-      faq: defaultValues.faq?.map(f => ({...f, id: generateFieldId() })) || [],
+      faq: defaultValues.faq?.map(f => ({...f, id: f.id || generateFieldId() })) || [],
     },
   });
   
@@ -221,14 +221,14 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
                    <FormField control={form.control} name={`massageServices.${index}.duration`} render={({ field }) => (
                     <FormItem>
                       <FormLabel>Duration (min)</FormLabel>
-                      <FormControl><Input type="number" {...field} placeholder="e.g., 60" /></FormControl>
+                      <FormControl><Input type="number" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                    <FormField control={form.control} name={`massageServices.${index}.price`} render={({ field }) => (
                     <FormItem>
                       <FormLabel>Price ($)</FormLabel>
-                      <FormControl><Input type="number" {...field} placeholder="e.g., 70" /></FormControl>
+                      <FormControl><Input type="number" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -277,7 +277,7 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a service" />
-                          </Trigger>
+                          </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {massageServices.map(service => (
@@ -288,15 +288,13 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <FormField control={form.control} name={`sessions.${index}.startTime`} render={({ field }) => {
-                     const Cmp = <Input type="datetime-local" {...field} />;
-                     return (
+                  <FormField control={form.control} name={`sessions.${index}.startTime`} render={({ field }) => (
                      <FormItem>
                       <FormLabel>Start Time</FormLabel>
-                      <FormControl>{Cmp}</FormControl>
+                      <FormControl><Input type="datetime-local" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}} />
+                  )} />
                 </div>
                  <Button type="button" variant="ghost" size="icon" onClick={() => removeSession(index)} className="absolute top-2 right-2">
                   <Trash2 className="h-4 w-4" />
@@ -369,5 +367,3 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
     </Form>
   );
 }
-
-    
