@@ -23,18 +23,20 @@ export async function submitBooking(data: unknown) {
     };
   }
   
+  let newBooking;
   try {
-    const newBooking = await createBooking(validatedFields.data);
-    // The redirect needs to be called outside of the try/catch block
-    // as it works by throwing an error, which would be caught.
-    if (newBooking) {
-      redirect(`/pass/${newBooking.id}`);
-    }
+    newBooking = await createBooking(validatedFields.data);
   } catch (error) {
     console.error(error);
     return {
       errors: { _form: ['An unexpected error occurred.'] },
     };
+  }
+
+  // The redirect needs to be called outside of the try/catch block
+  // as it works by throwing an error, which would be caught.
+  if (newBooking) {
+    redirect(`/pass/${newBooking.id}`);
   }
   
   // This will only be reached if the booking wasn't created for some reason
