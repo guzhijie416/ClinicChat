@@ -1,4 +1,4 @@
-import type { ClinicData, Booking } from '@/types';
+import type { ClinicData, Booking, Staff } from '@/types';
 import { addMinutes, isAfter } from 'date-fns';
 import fs from 'fs/promises';
 import path from 'path';
@@ -83,7 +83,7 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
   return db.clinicData;
 };
 
-export const getAvailableStaff = async (): Promise<{id: string, name: string }[]> => {
+export const getAvailableStaff = async (): Promise<Staff[]> => {
   const data = await getClinicData();
   const now = new Date();
 
@@ -91,15 +91,19 @@ export const getAvailableStaff = async (): Promise<{id: string, name: string }[]
     data.sessions
       .map(session => {
         const service = data.massageServices.find(s => s.id === session.massageServiceId);
-        if (!service) return null;
+        if (!service || !session.startTime) return null;
 
-        const startTime = new Date(session.startTime);
-        const endTime = addMinutes(startTime, service.duration);
-        
-        return {
-          staffId: session.staffId,
-          isBusy: isAfter(now, startTime) && isAfter(endTime, now)
-        };
+        try {
+          const startTime = new Date(session.startTime);
+          const endTime = addMinutes(startTime, service.duration);
+          
+          return {
+            staffId: session.staffId,
+            isBusy: isAfter(now, startTime) && isAfter(endTime, now)
+          };
+        } catch(e){
+          return null;
+        }
       })
       .filter(item => item?.isBusy)
       .map(item => item!.staffId)

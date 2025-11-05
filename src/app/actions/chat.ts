@@ -1,7 +1,7 @@
 "use server";
 
 import { answerClinicQuestions } from '@/ai/flows/answer-clinic-questions';
-import { getClinicData, getAvailableStaff } from '@/lib/data';
+import { getClinicDataForClient, getAvailableStaffForClient } from './data';
 
 export async function submitMessage(message: string): Promise<string> {
   if (!message.trim()) {
@@ -9,8 +9,8 @@ export async function submitMessage(message: string): Promise<string> {
   }
 
   try {
-    const clinicData = await getClinicData();
-    const availableStaff = await getAvailableStaff();
+    const clinicData = await getClinicDataForClient();
+    const availableStaff = await getAvailableStaffForClient();
     const faqString = clinicData.faq.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
     const staffString = availableStaff.map(s => s.name).join(', ');
 

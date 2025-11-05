@@ -1,0 +1,58 @@
+{
+  "clinicData": {
+    "name": "Tranquil Wellness Spa",
+    "address": "123 Zen Garden, Serenity City, SC 12345",
+    "hours": "Mon-Fri: 9am - 8pm, Sat: 10am - 6pm, Sun: Closed",
+    "phone": "555-0101",
+    "staff": [
+      {
+        "id": "1",
+        "name": "Dr. Evelyn Reed"
+      },
+      {
+        "id": "2",
+        "name": "Marco Jimenez (RMT)"
+      },
+      {
+        "id": "3",
+        "name": "Aisha Chen (Acupuncturist)"
+      }
+    ],
+    "massageServices": [
+      {
+        "id": "svc1",
+        "name": "Swedish Massage",
+        "duration": 60,
+        "price": 70
+      },
+      {
+        "id": "svc2",
+        "name": "Deep Tissue Massage",
+        "duration": 60,
+        "price": 85
+      },
+      {
+        "id": "svc3",
+        "name": "Hot Stone Massage",
+        "duration": 90,
+        "price": 120
+      }
+    ],
+    "sessions": [],
+    "faq": [
+      {
+        "question": "Do you offer couple massages?",
+        "answer": "Yes, we have a dedicated suite for couple massages. Please book in advance to ensure availability."
+      },
+      {
+        "question": "What is your cancellation policy?",
+        "answer": "We require a 24-hour notice for any cancellations or rescheduling. A fee may apply for late cancellations."
+      },
+      {
+        "question": "What is deep tissue massage?",
+        "answer": "Deep tissue massage is a massage technique that's mainly used to treat musculoskeletal issues, such as strains and sports injuries. It involves applying sustained pressure using slow, deep strokes to target the inner layers of your muscles and connective tissues."
+      }
+    ]
+  },
+  "bookings": []
+}

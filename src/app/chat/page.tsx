@@ -1,12 +1,13 @@
+
 "use client";
 
-import { useState, useRef, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import type { Message } from '@/types';
 import { submitMessage } from '@/app/actions/chat';
 import ChatLayout from '@/components/chat/chat-layout';
 import ChatMessages from '@/components/chat/chat-messages';
 import ChatInput from '@/components/chat/chat-input';
-import { getClinicData } from '@/lib/data';
+import { getClinicDataForClient } from '@/app/actions/data';
 import type { ClinicData } from '@/types';
 
 export default function ChatPage() {
@@ -22,9 +23,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     async function loadData() {
-        // Since we are not using a database, we pass the data from client to server action.
-        // In a real app with a DB, you'd fetch this in the server action.
-        const data = await getClinicData();
+        const data = await getClinicDataForClient();
         setClinicInfo(data);
     }
     loadData();
