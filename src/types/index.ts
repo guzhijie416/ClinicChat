@@ -3,11 +3,17 @@ export type Staff = {
   name: string; 
 };
 
+export type MassageService = {
+  id: string;
+  name: string;
+  duration: number; // in minutes
+  price: number;
+};
+
 export type Session = {
   id: string;
   staffId: string;
-  massageType: string;
-  duration: number; // in minutes
+  massageServiceId: string;
   startTime: string; // ISO string
 };
 
@@ -17,6 +23,7 @@ export type ClinicData = {
   hours: string;
   phone: string;
   staff: Staff[];
+  massageServices: MassageService[];
   sessions: Session[];
   faq: { question: string; answer: string }[];
 };

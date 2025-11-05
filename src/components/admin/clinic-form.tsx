@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
-import { addMinutes, isAfter } from "date-fns";
+import { addMinutes, isAfter, format } from "date-fns";
 
 const clinicFormSchema = z.object({
   name: z.string().min(1, "Clinic name is required."),
@@ -26,12 +26,17 @@ const clinicFormSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Staff name cannot be empty.") 
   })),
+  massageServices: z.array(z.object({
+    id: z.string(),
+    name: z.string().min(1, "Service name cannot be empty."),
+    duration: z.coerce.number().min(1, "Duration must be positive."),
+    price: z.coerce.number().min(0, "Price cannot be negative."),
+  })),
   sessions: z.array(z.object({
     id: z.string(),
     staffId: z.string().min(1, "Therapist is required."),
-    massageType: z.string().min(1, "Massage type is required."),
-    duration: z.coerce.number().min(1, "Duration must be positive."),
-    startTime: z.string(),
+    massageServiceId: z.string().min(1, "Massage service is required."),
+    startTime: z.string().min(1, "Start time is required."),
   })),
   faq: z.array(z.object({
     question: z.string().min(1, "FAQ question cannot be empty."),
@@ -53,6 +58,7 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
     defaultValues: {
       ...defaultValues,
       staff: defaultValues.staff || [],
+      massageServices: defaultValues.massageServices || [],
       sessions: defaultValues.sessions || [],
     },
   });
@@ -60,6 +66,11 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
   const { fields: staffFields, append: appendStaff, remove: removeStaff } = useFieldArray({
     control: form.control,
     name: "staff",
+  });
+  
+  const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
+    control: form.control,
+    name: "massageServices",
   });
 
   const { fields: faqFields, append: appendFaq, remove: removeFaq } = useFieldArray({
@@ -71,6 +82,8 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
     control: form.control,
     name: "sessions",
   });
+
+  const massageServices = form.watch('massageServices');
 
   const onSubmit = async (data: ClinicFormValues) => {
     const result = await saveClinicData(data);
@@ -94,7 +107,9 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
       const now = new Date();
       const currentSessions = form.getValues("sessions");
       const activeSessions = currentSessions.filter(session => {
-        const endTime = addMinutes(new Date(session.startTime), session.duration);
+        const service = massageServices.find(s => s.id === session.massageServiceId);
+        if (!service) return false;
+        const endTime = addMinutes(new Date(session.startTime), service.duration);
         return isAfter(endTime, now);
       });
       if (activeSessions.length < currentSessions.length) {
@@ -102,7 +117,7 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
       }
     }, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, [form]);
+  }, [form, massageServices]);
 
 
   return (
@@ -164,6 +179,49 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
             </Button>
           </CardContent>
         </Card>
+        
+        <Separator />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Massage Services</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {serviceFields.map((field, index) => (
+              <div key={field.id} className="space-y-4 p-4 border rounded-lg relative">
+                 <Button type="button" variant="ghost" size="icon" onClick={() => removeService(index)} className="absolute top-2 right-2">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <FormField control={form.control} name={`massageServices.${index}.name`} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Service Name</FormLabel>
+                      <FormControl><Input {...field} placeholder="e.g. Swedish Massage" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                   <FormField control={form.control} name={`massageServices.${index}.duration`} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Duration (min)</FormLabel>
+                      <FormControl><Input type="number" {...field} placeholder="e.g., 60" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                   <FormField control={form.control} name={`massageServices.${index}.price`} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price ($)</FormLabel>
+                      <FormControl><Input type="number" {...field} placeholder="e.g., 70" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+              </div>
+            ))}
+             <Button type="button" variant="outline" size="sm" onClick={() => appendService({ id: crypto.randomUUID(), name: "", duration: 60, price: 70 })}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Service
+            </Button>
+          </CardContent>
+        </Card>
 
         <Separator />
 
@@ -194,17 +252,28 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <FormField control={form.control} name={`sessions.${index}.massageType`} render={({ field }) => (
+                  <FormField control={form.control} name={`sessions.${index}.massageServiceId`} render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Massage Type</FormLabel>
-                      <FormControl><Input {...field} placeholder="e.g. Hot Stone" /></FormControl>
+                      <FormLabel>Massage Service</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a service" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {massageServices.map(service => (
+                            <SelectItem key={service.id} value={service.id}>{service.name} ({service.duration} min)</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <FormField control={form.control} name={`sessions.${index}.duration`} render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Duration (min)</FormLabel>
-                      <FormControl><Input type="number" {...field} placeholder="e.g., 60" /></FormControl>
+                  <FormField control={form.control} name={`sessions.${index}.startTime`} render={({ field }) => (
+                     <FormItem>
+                      <FormLabel>Start Time</FormLabel>
+                      <FormControl><Input type="time" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -218,12 +287,24 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
                 type="button" 
                 variant="outline" 
                 size="sm" 
-                onClick={() => appendSession({ id: crypto.randomUUID(), staffId: "", massageType: "", duration: 60, startTime: new Date().toISOString() })}
-                disabled={form.watch('staff').length === 0}
+                onClick={() => {
+                  const now = new Date();
+                  const time = format(now, "HH:mm");
+                  const today = format(now, "yyyy-MM-dd");
+
+                  appendSession({ 
+                    id: crypto.randomUUID(), 
+                    staffId: "", 
+                    massageServiceId: "", 
+                    startTime: `${today}T${time}` 
+                  })
+                }}
+                disabled={form.watch('staff').length === 0 || massageServices.length === 0}
               >
               <PlusCircle className="mr-2 h-4 w-4" /> Add Session
             </Button>
             {form.watch('staff').length === 0 && <p className="text-sm text-muted-foreground">Please add a therapist before adding a session.</p>}
+            {massageServices.length === 0 && <p className="text-sm text-muted-foreground">Please add a massage service before adding a session.</p>}
           </CardContent>
         </Card>
 

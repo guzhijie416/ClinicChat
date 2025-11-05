@@ -12,6 +12,11 @@ let clinicData: ClinicData = {
     { id: '2', name: 'Marco Jimenez (RMT)' },
     { id: '3', name: 'Aisha Chen (Acupuncturist)' },
   ],
+  massageServices: [
+    { id: 'svc1', name: 'Swedish Massage', duration: 60, price: 70 },
+    { id: 'svc2', name: 'Deep Tissue Massage', duration: 60, price: 85 },
+    { id: 'svc3', name: 'Hot Stone Massage', duration: 90, price: 120 },
+  ],
   sessions: [],
   faq: [
     { 
@@ -46,12 +51,20 @@ export const getAvailableStaff = async (): Promise<{ name: string }[]> => {
 
   const busyStaffIds = new Set(
     data.sessions
-      .filter(session => {
+      .map(session => {
+        const service = data.massageServices.find(s => s.id === session.massageServiceId);
+        if (!service) return null;
+
         const startTime = new Date(session.startTime);
-        const endTime = addMinutes(startTime, session.duration);
-        return isAfter(now, startTime) && isAfter(endTime, now);
+        const endTime = addMinutes(startTime, service.duration);
+        
+        return {
+          staffId: session.staffId,
+          isBusy: isAfter(now, startTime) && isAfter(endTime, now)
+        };
       })
-      .map(session => session.staffId)
+      .filter(item => item?.isBusy)
+      .map(item => item!.staffId)
   );
 
   return data.staff.filter(staff => !busyStaffIds.has(staff.id));

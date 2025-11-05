@@ -13,12 +13,17 @@ const clinicSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Staff name cannot be empty.") 
   })),
+  massageServices: z.array(z.object({
+    id: z.string(),
+    name: z.string().min(1, "Service name cannot be empty."),
+    duration: z.coerce.number().min(1, "Duration must be positive."),
+    price: z.coerce.number().min(0, "Price cannot be negative."),
+  })),
   sessions: z.array(z.object({
     id: z.string(),
     staffId: z.string().min(1, "Therapist is required."),
-    massageType: z.string().min(1, "Massage type is required."),
-    duration: z.coerce.number().min(1, "Duration must be positive."),
-    startTime: z.string(),
+    massageServiceId: z.string().min(1, "Massage service is required."),
+    startTime: z.string().min(1, "Start time is required."),
   })),
   faq: z.array(z.object({
     question: z.string().min(1, "FAQ question cannot be empty."),
