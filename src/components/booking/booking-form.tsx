@@ -23,6 +23,9 @@ import {
 import type { ClinicData } from '@/types';
 import { submitBooking } from '@/app/actions/booking';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { useFormState } from 'react-dom';
+import { useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const bookingFormSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
@@ -46,14 +49,15 @@ export function BookingForm({ clinicData }: BookingFormProps) {
     },
   });
 
-  const onSubmit = async (data: BookingFormValues) => {
-    await submitBooking(data);
-  };
+  const { toast } = useToast();
+
+  const { formState, handleSubmit } = form;
 
   return (
     <Card>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form action={async (formData: FormData) => {
+        await submitBooking(formData);
+      }}>
           <CardContent className="space-y-6 pt-6">
             <FormField
               control={form.control}
@@ -77,6 +81,7 @@ export function BookingForm({ clinicData }: BookingFormProps) {
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    name={field.name}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -113,14 +118,13 @@ export function BookingForm({ clinicData }: BookingFormProps) {
           <CardFooter>
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting}
+              disabled={formState.isSubmitting}
               className="w-full"
             >
-              {form.formState.isSubmitting ? 'Generating Pass...' : 'Get Your Pass'}
+              {formState.isSubmitting ? 'Generating Pass...' : 'Get Your Pass'}
             </Button>
           </CardFooter>
         </form>
-      </Form>
     </Card>
   );
 }

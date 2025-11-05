@@ -11,8 +11,9 @@ const bookingSchema = z.object({
   bookingTime: z.string().min(1, 'Please select a time.'),
 });
 
-export async function submitBooking(formData: unknown) {
-  const validatedFields = bookingSchema.safeParse(formData);
+export async function submitBooking(formData: FormData) {
+  const rawFormData = Object.fromEntries(formData.entries());
+  const validatedFields = bookingSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
     console.log(validatedFields.error.flatten().fieldErrors);
