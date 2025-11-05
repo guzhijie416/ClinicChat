@@ -47,20 +47,12 @@ export function BookingForm({ clinicData }: BookingFormProps) {
     },
   });
 
-  const { toast } = useToast();
   const { formState } = form;
-
-  const handleFormSubmit = async (formData: FormData) => {
-    const isValid = await form.trigger();
-    if (isValid) {
-      await submitBooking(formData);
-    }
-  };
 
   return (
     <Card>
       <Form {...form}>
-        <form action={handleFormSubmit}>
+        <form action={submitBooking}>
             <CardContent className="space-y-6 pt-6">
               <FormField
                 control={form.control}
