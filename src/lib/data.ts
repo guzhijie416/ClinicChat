@@ -81,13 +81,7 @@ export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booki
   return Promise.resolve(newBooking);
 }
 
-export const getBooking = async (id?: string, partialBooking?: Omit<Booking, 'id' | 'staffId'>): Promise<Booking[]> => {
-  if (id) {
-    const booking = bookings.find(b => b.id === id);
-    return Promise.resolve(booking ? [booking] : []);
-  }
-  if(partialBooking) {
-    return Promise.resolve(bookings.filter(b => b.name === partialBooking.name && b.bookingTime === partialBooking.bookingTime && b.massageServiceId === partialBooking.massageServiceId));
-  }
-  return Promise.resolve(bookings);
+export const getBooking = async (id: string): Promise<Booking | undefined> => {
+  const booking = bookings.find(b => b.id === id);
+  return Promise.resolve(booking);
 }

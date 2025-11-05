@@ -8,8 +8,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 
 export default async function PassPage({ params }: { params: { id: string } }) {
-  const bookings = await getBooking(params.id);
-  const booking = bookings[0];
+  const booking = await getBooking(params.id);
   const clinicData = await getClinicData();
 
   if (!booking || !clinicData) {
