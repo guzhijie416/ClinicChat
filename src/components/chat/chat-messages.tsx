@@ -5,6 +5,7 @@ import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -18,6 +19,27 @@ const TypingIndicator = () => (
     <div className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse [animation-delay:0.4s]"></div>
   </div>
 );
+
+const MessageContent = ({ content }: { content: string }) => {
+  const linkRegex = /(\/book)/g;
+  const parts = content.split(linkRegex);
+
+  return (
+    <p className="text-sm">
+      {parts.map((part, index) => {
+        if (part === '/book') {
+          return (
+            <Link key={index} href="/book" className="text-primary underline hover:text-primary/80">
+              {part}
+            </Link>
+          );
+        }
+        return part;
+      })}
+    </p>
+  );
+};
+
 
 export default function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -53,7 +75,7 @@ export default function ChatMessages({ messages, isLoading }: ChatMessagesProps)
                 : "bg-muted text-muted-foreground rounded-bl-none"
             )}
           >
-            <p className="text-sm">{message.content}</p>
+            <MessageContent content={message.content} />
           </div>
           {message.role === 'user' && (
             <Avatar className="h-8 w-8">
