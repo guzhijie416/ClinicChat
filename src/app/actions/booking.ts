@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { createBooking, getBooking } from '@/lib/data';
+import { createBooking } from '@/lib/data';
 import { redirect } from 'next/navigation';
 
 const bookingSchema = z.object({
@@ -18,26 +18,28 @@ export async function submitBooking(data: unknown) {
   const validatedFields = bookingSchema.safeParse(data);
 
   if (!validatedFields.success) {
-    console.log(validatedFields.error.flatten().fieldErrors);
     return {
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
 
+  let newBooking;
   try {
-    const newBooking = await createBooking(validatedFields.data);
-    // The redirect needs to be called outside of the try/catch block
-    // as it works by throwing an error, which would be caught.
-     if(newBooking){
-        redirect(`/pass/${newBooking.id}`);
-    }
+    newBooking = await createBooking(validatedFields.data);
   } catch (error) {
     return {
       errors: { _form: ['An unexpected error occurred.'] },
     };
   }
+
+  // The redirect needs to be called outside of the try/catch block
+  // as it works by throwing an error, which would be caught.
+  if (newBooking) {
+    redirect(`/pass/${newBooking.id}`);
+  }
   
+  // This will only be reached if the booking wasn't created for some reason
   return {
-      errors: { _form: ['Could not find booking to redirect.'] },
+      errors: { _form: ['Could not create booking.'] },
   }
 }
