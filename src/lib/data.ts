@@ -1,4 +1,4 @@
-import type { ClinicData } from '@/types';
+import type { ClinicData, Booking } from '@/types';
 import { addMinutes, isAfter } from 'date-fns';
 
 // This is a mock database. In a real application, you would use Firestore.
@@ -34,6 +34,8 @@ let clinicData: ClinicData = {
   ],
 };
 
+let bookings: Booking[] = [];
+
 export const getClinicData = async (): Promise<ClinicData> => {
   // In a real app, this would fetch from Firestore
   return Promise.resolve(JSON.parse(JSON.stringify(clinicData)));
@@ -68,4 +70,17 @@ export const getAvailableStaff = async (): Promise<{ name: string }[]> => {
   );
 
   return data.staff.filter(staff => !busyStaffIds.has(staff.id));
+};
+
+export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booking> => {
+  const newBooking: Booking = {
+    id: `booking-${Date.now()}-${Math.random()}`,
+    ...booking
+  };
+  bookings.push(newBooking);
+  return Promise.resolve(newBooking);
+}
+
+export const getBooking = async (id: string): Promise<Booking | undefined> => {
+  return Promise.resolve(bookings.find(b => b.id === id));
 }

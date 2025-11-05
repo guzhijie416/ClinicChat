@@ -36,9 +36,15 @@ export type ClinicData = {
 };
 
 export type Message = {
-  id: string;
+  id:string;
   content: string;
   role: 'user' | 'assistant';
 };
 
+export type Booking = {
+  id: string;
+  name: string;
+  massageServiceId: string;
+  bookingTime: string; // ISO string
+};
     

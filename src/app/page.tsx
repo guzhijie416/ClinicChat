@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, QrCode, MessageSquare, Settings } from 'lucide-react';
+import { ArrowRight, QrCode, MessageSquare, Settings, CalendarCheck } from 'lucide-react';
 import { Logo } from '@/components/logo';
 
 export default function Home() {
@@ -29,11 +29,17 @@ export default function Home() {
             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
               ClinicChat provides your clients with an AI-powered assistant to answer their questions about your services, availability, and more, 24/7.
             </p>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild size="lg">
                 <Link href="/chat">
                   Try the Demo Chat
                   <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="secondary">
+                <Link href="/book">
+                  Book a Session
+                  <CalendarCheck className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
