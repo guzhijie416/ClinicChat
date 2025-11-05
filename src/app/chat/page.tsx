@@ -22,6 +22,8 @@ export default function ChatPage() {
 
   useEffect(() => {
     async function loadData() {
+        // Since we are not using a database, we pass the data from client to server action.
+        // In a real app with a DB, you'd fetch this in the server action.
         const data = await getClinicData();
         setClinicInfo(data);
     }
@@ -29,7 +31,7 @@ export default function ChatPage() {
   }, [])
   
   const handleSend = (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || !clinicInfo) return;
 
     const userMessage: Message = {
       id: crypto.randomUUID(),

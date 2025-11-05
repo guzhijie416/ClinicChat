@@ -1,4 +1,5 @@
 import type { ClinicData } from '@/types';
+import { addMinutes, isAfter } from 'date-fns';
 
 // This is a mock database. In a real application, you would use Firestore.
 let clinicData: ClinicData = {
@@ -6,11 +7,12 @@ let clinicData: ClinicData = {
   address: '123 Zen Garden, Serenity City, SC 12345',
   hours: 'Mon-Fri: 9am - 8pm, Sat: 10am - 6pm, Sun: Closed',
   phone: '555-0101',
-  availableStaff: [
-    { name: 'Dr. Evelyn Reed' },
-    { name: 'Marco Jimenez (RMT)' },
-    { name: 'Aisha Chen (Acupuncturist)' },
+  staff: [
+    { id: '1', name: 'Dr. Evelyn Reed' },
+    { id: '2', name: 'Marco Jimenez (RMT)' },
+    { id: '3', name: 'Aisha Chen (Acupuncturist)' },
   ],
+  sessions: [],
   faq: [
     { 
       question: 'Do you offer couple massages?', 
@@ -29,11 +31,28 @@ let clinicData: ClinicData = {
 
 export const getClinicData = async (): Promise<ClinicData> => {
   // In a real app, this would fetch from Firestore
-  return Promise.resolve(clinicData);
+  return Promise.resolve(JSON.parse(JSON.stringify(clinicData)));
 };
 
 export const updateClinicData = async (data: ClinicData): Promise<ClinicData> => {
   // In a real app, this would update data in Firestore
-  clinicData = data;
+  clinicData = JSON.parse(JSON.stringify(data));
   return Promise.resolve(clinicData);
 };
+
+export const getAvailableStaff = async (): Promise<{ name: string }[]> => {
+  const data = await getClinicData();
+  const now = new Date();
+
+  const busyStaffIds = new Set(
+    data.sessions
+      .filter(session => {
+        const startTime = new Date(session.startTime);
+        const endTime = addMinutes(startTime, session.duration);
+        return isAfter(now, startTime) && isAfter(endTime, now);
+      })
+      .map(session => session.staffId)
+  );
+
+  return data.staff.filter(staff => !busyStaffIds.has(staff.id));
+}
