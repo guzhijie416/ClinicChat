@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { BookingForm } from '@/components/booking/booking-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home } from 'lucide-react';
+import { Home, MessageSquare } from 'lucide-react';
 import { getClinicDataForClient, getAvailableStaffForClient } from '@/app/actions/data';
 
 
@@ -41,12 +41,20 @@ export default function BookPage() {
               Select a service and time for your appointment.
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/">
-              <Home className="mr-2 h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link href="/chat">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Back to Chat
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/">
+                <Home className="mr-2 h-4 w-4" />
+                Back to Home
+              </Link>
+            </Button>
+          </div>
         </div>
         <BookingForm clinicData={clinicData} availableStaff={availableStaff} />
       </div>
