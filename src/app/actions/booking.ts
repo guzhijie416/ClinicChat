@@ -13,9 +13,8 @@ const bookingSchema = z.object({
   }),
 });
 
-export async function submitBooking(formData: FormData) {
-  const rawFormData = Object.fromEntries(formData.entries());
-  const validatedFields = bookingSchema.safeParse(rawFormData);
+export async function submitBooking(data: unknown) {
+  const validatedFields = bookingSchema.safeParse(data);
 
   if (!validatedFields.success) {
     console.log(validatedFields.error.flatten().fieldErrors);
@@ -26,10 +25,22 @@ export async function submitBooking(formData: FormData) {
 
   try {
     const booking = await createBooking(validatedFields.data);
-    redirect(`/pass/${booking.id}`);
+    // The redirect needs to be called outside of the try/catch block
+    // as it works by throwing an error, which would be caught.
   } catch (error) {
     return {
       errors: { _form: ['An unexpected error occurred.'] },
     };
+  }
+
+  // Find the created booking to get the ID for redirection
+  const bookings = await (await import('@/lib/data')).getBooking(undefined, validatedFields.data);
+  const newBooking = bookings[bookings.length -1];
+  if(newBooking){
+      redirect(`/pass/${newBooking.id}`);
+  }
+  
+  return {
+      errors: { _form: ['Could not find booking to redirect.'] },
   }
 }

@@ -29,8 +29,8 @@ import { useTransition } from 'react';
 const bookingFormSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   massageServiceId: z.string().min(1, 'Please select a service.'),
-  bookingTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid date and time format."
+  bookingTime: z.string().refine((val) => val && !isNaN(Date.parse(val)), {
+    message: "A valid booking time is required."
   }),
 });
 
@@ -55,14 +55,10 @@ export function BookingForm({ clinicData }: BookingFormProps) {
 
   const onSubmit = (data: BookingFormValues) => {
     startTransition(async () => {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-
-      const result = await submitBooking(formData);
+      const result = await submitBooking(data);
 
       if (result?.errors) {
+        // Concatenate all error messages into a single string
         const errorMessages = Object.values(result.errors).flat().join(' ');
         toast({
           variant: "destructive",
@@ -74,9 +70,9 @@ export function BookingForm({ clinicData }: BookingFormProps) {
   };
 
   return (
-    <Card>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+    <Form {...form}>
+       <form onSubmit={form.handleSubmit(onSubmit)}>
+      <Card>
           <CardContent className="space-y-6 pt-6">
             <FormField
               control={form.control}
@@ -143,8 +139,8 @@ export function BookingForm({ clinicData }: BookingFormProps) {
               {isPending ? 'Generating Pass...' : 'Get Your Pass'}
             </Button>
           </CardFooter>
-        </form>
-      </Form>
-    </Card>
+      </Card>
+      </form>
+    </Form>
   );
 }
