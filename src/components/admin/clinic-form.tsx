@@ -248,7 +248,7 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
                     <FormLabel>Answer</FormLabel>
                     <FormControl><Textarea {...field} placeholder="Answer to the question" /></FormControl>
                     <FormMessage />
-                  </Item>
+                  </FormItem>
                 )} />
                 <Button type="button" variant="ghost" size="icon" onClick={() => removeFaq(index)} className="absolute top-2 right-2">
                   <Trash2 className="h-4 w-4" />
