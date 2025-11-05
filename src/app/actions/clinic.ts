@@ -54,5 +54,3 @@ export async function saveClinicData(formData: unknown) {
     }
   }
 }
-
-    
