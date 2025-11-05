@@ -8,6 +8,7 @@ import { redirect } from 'next/navigation';
 const bookingSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   massageServiceId: z.string().min(1, 'Please select a service.'),
+  staffId: z.string().min(1, 'Please select a therapist.'),
   bookingTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "A valid booking time is required."
   }),
@@ -24,7 +25,7 @@ export async function submitBooking(data: unknown) {
   }
 
   try {
-    const booking = await createBooking(validatedFields.data);
+    await createBooking(validatedFields.data);
     // The redirect needs to be called outside of the try/catch block
     // as it works by throwing an error, which would be caught.
   } catch (error) {

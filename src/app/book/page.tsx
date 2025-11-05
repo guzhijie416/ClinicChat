@@ -1,7 +1,7 @@
 
 'use client';
-import { getClinicData } from '@/lib/data';
-import type { ClinicData } from '@/types';
+import { getClinicData, getAvailableStaff } from '@/lib/data';
+import type { ClinicData, Staff } from '@/types';
 import { useEffect, useState } from 'react';
 import { BookingForm } from '@/components/booking/booking-form';
 import Link from 'next/link';
@@ -10,11 +10,14 @@ import { Home } from 'lucide-react';
 
 export default function BookPage() {
   const [clinicData, setClinicData] = useState<ClinicData | null>(null);
+  const [availableStaff, setAvailableStaff] = useState<Staff[]>([]);
 
   useEffect(() => {
     async function loadData() {
       const data = await getClinicData();
+      const staff = await getAvailableStaff();
       setClinicData(data);
+      setAvailableStaff(staff);
     }
     loadData();
   }, []);
@@ -44,7 +47,7 @@ export default function BookPage() {
             </Link>
           </Button>
         </div>
-        <BookingForm clinicData={clinicData} />
+        <BookingForm clinicData={clinicData} availableStaff={availableStaff} />
       </div>
     </div>
   );

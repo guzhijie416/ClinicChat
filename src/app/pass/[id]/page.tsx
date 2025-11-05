@@ -3,7 +3,7 @@ import { getBooking, getClinicData } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Ticket, Calendar, Clock, User, Home, Sparkles, DollarSign } from 'lucide-react';
+import { Ticket, Calendar, Clock, User, Home, Sparkles, DollarSign, UserSquare } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -19,8 +19,12 @@ export default async function PassPage({ params }: { params: { id: string } }) {
   const service = clinicData.massageServices.find(
     (s) => s.id === booking.massageServiceId
   );
+  
+  const therapist = clinicData.staff.find(
+    (t) => t.id === booking.staffId
+  );
 
-  if (!service) {
+  if (!service || !therapist) {
     notFound();
   }
 
@@ -69,6 +73,13 @@ export default async function PassPage({ params }: { params: { id: string } }) {
                         <div>
                             <p className="text-xs text-muted-foreground">Time</p>
                             <p className="font-medium">{format(bookingTime, 'p')}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 col-span-full">
+                        <UserSquare className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                            <p className="text-xs text-muted-foreground">Therapist</p>
+                            <p className="font-medium">{therapist.name}</p>
                         </div>
                     </div>
                 </div>

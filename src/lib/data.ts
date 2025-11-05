@@ -47,7 +47,7 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
   return Promise.resolve(clinicData);
 };
 
-export const getAvailableStaff = async (): Promise<{ name: string }[]> => {
+export const getAvailableStaff = async (): Promise<{id: string, name: string }[]> => {
   const data = await getClinicData();
   const now = new Date();
 
@@ -81,7 +81,7 @@ export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booki
   return Promise.resolve(newBooking);
 }
 
-export const getBooking = async (id?: string, partialBooking?: Omit<Booking, 'id'>): Promise<Booking[]> => {
+export const getBooking = async (id?: string, partialBooking?: Omit<Booking, 'id' | 'staffId'>): Promise<Booking[]> => {
   if (id) {
     const booking = bookings.find(b => b.id === id);
     return Promise.resolve(booking ? [booking] : []);

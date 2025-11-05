@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { ClinicData } from '@/types';
+import type { ClinicData, Staff } from '@/types';
 import { submitBooking } from '@/app/actions/booking';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,7 @@ import { useTransition } from 'react';
 const bookingFormSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   massageServiceId: z.string().min(1, 'Please select a service.'),
+  staffId: z.string().min(1, 'Please select a therapist.'),
   bookingTime: z.string().refine((val) => val && !isNaN(Date.parse(val)), {
     message: "A valid booking time is required."
   }),
@@ -38,9 +39,10 @@ type BookingFormValues = z.infer<typeof bookingFormSchema>;
 
 interface BookingFormProps {
   clinicData: ClinicData;
+  availableStaff: Staff[];
 }
 
-export function BookingForm({ clinicData }: BookingFormProps) {
+export function BookingForm({ clinicData, availableStaff }: BookingFormProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -49,6 +51,7 @@ export function BookingForm({ clinicData }: BookingFormProps) {
     defaultValues: {
       name: '',
       massageServiceId: '',
+      staffId: '',
       bookingTime: '',
     },
   });
@@ -58,7 +61,6 @@ export function BookingForm({ clinicData }: BookingFormProps) {
       const result = await submitBooking(data);
 
       if (result?.errors) {
-        // Concatenate all error messages into a single string
         const errorMessages = Object.values(result.errors).flat().join(' ');
         toast({
           variant: "destructive",
@@ -116,6 +118,33 @@ export function BookingForm({ clinicData }: BookingFormProps) {
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="staffId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Therapist</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an available therapist" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableStaff.length > 0 ? availableStaff.map((staff) => (
+                        <SelectItem key={staff.id} value={staff.id}>
+                          {staff.name}
+                        </SelectItem>
+                      )) : <SelectItem value="no-one" disabled>No therapists available</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="bookingTime"
@@ -133,7 +162,7 @@ export function BookingForm({ clinicData }: BookingFormProps) {
           <CardFooter>
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || availableStaff.length === 0}
               className="w-full"
             >
               {isPending ? 'Generating Pass...' : 'Get Your Pass'}

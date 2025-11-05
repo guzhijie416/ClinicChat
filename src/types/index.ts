@@ -45,6 +45,7 @@ export type Booking = {
   id: string;
   name: string;
   massageServiceId: string;
+  staffId: string;
   bookingTime: string; // ISO string
 };
     
