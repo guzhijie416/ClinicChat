@@ -42,7 +42,26 @@
         "price": 120
       }
     ],
-    "sessions": [],
+    "sessions": [
+      {
+        "id": "session-1762314220958-940",
+        "staffId": "id-1762313549627-60",
+        "massageServiceId": "svc3",
+        "startTime": "2025-11-05T15:30"
+      },
+      {
+        "id": "session-1762314334330-682",
+        "staffId": "id-1762313549627-60",
+        "massageServiceId": "svc2",
+        "startTime": "2025-11-05T15:50"
+      },
+      {
+        "id": "session-1762314432709-899",
+        "staffId": "3",
+        "massageServiceId": "svc2",
+        "startTime": "2025-11-05T16:50"
+      }
+    ],
     "faq": [
       {
         "id": "id-1762313411622-0",
@@ -89,6 +108,27 @@
       "massageServiceId": "svc1",
       "staffId": "id-1762313549627-60",
       "bookingTime": "2025-11-05T14:30"
+    },
+    {
+      "id": "booking-1762314220957-978",
+      "name": "Jay",
+      "massageServiceId": "svc3",
+      "staffId": "id-1762313549627-60",
+      "bookingTime": "2025-11-05T15:30"
+    },
+    {
+      "id": "booking-1762314334330-109",
+      "name": "Jay",
+      "massageServiceId": "svc2",
+      "staffId": "id-1762313549627-60",
+      "bookingTime": "2025-11-05T15:50"
+    },
+    {
+      "id": "booking-1762314432709-319",
+      "name": "Jay",
+      "massageServiceId": "svc2",
+      "staffId": "3",
+      "bookingTime": "2025-11-05T16:50"
     }
   ]
 }

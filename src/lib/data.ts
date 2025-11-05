@@ -137,3 +137,9 @@ export const getBooking = async (id: string): Promise<Booking | undefined> => {
   const db = await readDb();
   return db.bookings.find(b => b.id === id);
 }
+
+export const getAllBookings = async (): Promise<Booking[]> => {
+  const db = await readDb();
+  // Return bookings sorted by date, most recent first
+  return db.bookings.sort((a, b) => new Date(b.bookingTime).getTime() - new Date(a.bookingTime).getTime());
+};
