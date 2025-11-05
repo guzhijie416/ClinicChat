@@ -8,7 +8,9 @@ import { redirect } from 'next/navigation';
 const bookingSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   massageServiceId: z.string().min(1, 'Please select a service.'),
-  bookingTime: z.string().min(1, 'Please select a time.'),
+  bookingTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "A valid booking time is required."
+  }),
 });
 
 export async function submitBooking(formData: FormData) {

@@ -29,7 +29,9 @@ import { useTransition } from 'react';
 const bookingFormSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   massageServiceId: z.string().min(1, 'Please select a service.'),
-  bookingTime: z.string().min(1, 'Please select a time.'),
+  bookingTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Invalid date and time format."
+  }),
 });
 
 type BookingFormValues = z.infer<typeof bookingFormSchema>;
@@ -61,15 +63,13 @@ export function BookingForm({ clinicData }: BookingFormProps) {
       const result = await submitBooking(formData);
 
       if (result?.errors) {
-        // Handle errors if needed, e.g., show a toast
+        const errorMessages = Object.values(result.errors).flat().join(' ');
         toast({
           variant: "destructive",
           title: "Booking Failed",
-          description: "Please check your input and try again.",
+          description: errorMessages || "Please check your input and try again.",
         });
       }
-      // A successful submission will automatically redirect due to the server action,
-      // so no success handling is needed here.
     });
   };
 
