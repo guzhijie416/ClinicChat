@@ -1,9 +1,9 @@
 {
   "clinicData": {
-    "name": "Tranquil Wellness Spa",
-    "address": "123 Zen Garden, Serenity City, SC 12345",
-    "hours": "Mon-Fri: 9am - 8pm, Sat: 10am - 6pm, Sun: Closed",
-    "phone": "555-0101",
+    "name": "Jing Long Wellness Inc",
+    "address": "431 Boler Rd. #10, London ON N6K 2K8",
+    "hours": "Mon-Fri: 9am - 10pm, Sat: 10am - 10pm, Sun: 10qm-9pm.",
+    "phone": "519-868-3788",
     "staff": [
       {
         "id": "1",
@@ -16,6 +16,10 @@
       {
         "id": "3",
         "name": "Aisha Chen (Acupuncturist)"
+      },
+      {
+        "id": "id-1762313549627-60",
+        "name": "K.K. "
       }
     ],
     "massageServices": [
@@ -41,14 +45,17 @@
     "sessions": [],
     "faq": [
       {
+        "id": "id-1762313411622-0",
         "question": "Do you offer couple massages?",
         "answer": "Yes, we have a dedicated suite for couple massages. Please book in advance to ensure availability."
       },
       {
+        "id": "id-1762313411622-1",
         "question": "What is your cancellation policy?",
         "answer": "We require a 24-hour notice for any cancellations or rescheduling. A fee may apply for late cancellations."
       },
       {
+        "id": "id-1762313411622-2",
         "question": "What is deep tissue massage?",
         "answer": "Deep tissue massage is a massage technique that's mainly used to treat musculoskeletal issues, such as strains and sports injuries. It involves applying sustained pressure using slow, deep strokes to target the inner layers of your muscles and connective tissues."
       }
@@ -74,6 +81,13 @@
       "name": "Jay",
       "massageServiceId": "svc1",
       "staffId": "3",
+      "bookingTime": "2025-11-05T14:30"
+    },
+    {
+      "id": "booking-1762313630095-134",
+      "name": "Jay",
+      "massageServiceId": "svc1",
+      "staffId": "id-1762313549627-60",
       "bookingTime": "2025-11-05T14:30"
     }
   ]

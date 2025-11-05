@@ -1,4 +1,4 @@
-import type { ClinicData, Booking, Staff } from '@/types';
+import type { ClinicData, Booking, Staff, Session } from '@/types';
 import { addMinutes, isAfter } from 'date-fns';
 import fs from 'fs/promises';
 import path from 'path';
@@ -118,7 +118,17 @@ export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booki
     id: `booking-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     ...booking
   };
+  
+  const newSession: Session = {
+    id: `session-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    staffId: newBooking.staffId,
+    massageServiceId: newBooking.massageServiceId,
+    startTime: newBooking.bookingTime,
+  };
+
   db.bookings.push(newBooking);
+  db.clinicData.sessions.push(newSession);
+
   await writeDb(db);
   return newBooking;
 }
