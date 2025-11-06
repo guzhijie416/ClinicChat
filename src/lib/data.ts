@@ -95,19 +95,18 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
   return db.clinicData;
 };
 
-export const getScheduledStaffForDay = async (forDate?: Date): Promise<Staff[]> => {
-  const { staff, weeklySchedule } = await getClinicData();
-  const aDate = forDate ? new Date(forDate) : new Date();
-  const dayOfWeek = getDay(aDate);
+export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> => {
+    const { staff, weeklySchedule } = await getClinicData();
+    const dayOfWeek = getDay(forDate);
 
-  if (!weeklySchedule) {
-    return [];
-  }
-  
-  return staff.filter(staffMember => {
-    const staffSchedule = weeklySchedule[staffMember.id];
-    return Array.isArray(staffSchedule) && staffSchedule.includes(dayOfWeek);
-  });
+    if (!weeklySchedule || Object.keys(weeklySchedule).length === 0) {
+        return [];
+    }
+
+    return staff.filter(staffMember => {
+        const staffSchedule = weeklySchedule[staffMember.id];
+        return Array.isArray(staffSchedule) && staffSchedule.includes(dayOfWeek);
+    });
 };
 
 export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
