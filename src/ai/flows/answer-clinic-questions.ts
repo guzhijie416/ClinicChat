@@ -50,25 +50,8 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   FAQ:
   {{{faq}}}
 
-  If the user's question is about "who is working", "who is available", "what is your schedule", or similar, you MUST generate a human-readable weekly schedule. Follow these steps precisely:
-  1. The provided JSON has two keys: "staff" (an array of objects with id and name) and "schedule" (an object where keys are staff ids and values are arrays of day numbers).
-  2. The schedule uses numbers for days: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 0=Sunday.
-  3. Create a list for each day of the week: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
-  4. For each person in the "staff" array, get their 'id' and 'name'.
-  5. Look up that person's 'id' in the "schedule" object to get their list of working day numbers.
-  6. For each working day number in their schedule, add the person's 'name' to the corresponding day's list.
-  7. After processing all staff, format the result as a list. If a day has no staff, state "No one scheduled". Your entire response should be ONLY this formatted schedule.
+  If the user's question is about "who is working", "who is available", "what is your schedule", or similar, your response MUST be only the raw, unmodified JSON string from the "STAFF & SCHEDULE JSON" context above. Do not add any other text.
   
-  Example output format:
-  Here is our weekly schedule:
-  - Monday: Dr. Evelyn Reed, Marco Jimenez
-  - Tuesday: Dr. Evelyn Reed
-  - Wednesday: No one scheduled
-  - Thursday: Aisha Chen
-  - Friday: Dr. Evelyn Reed, Marco Jimenez, Aisha Chen
-  - Saturday: K.K.
-  - Sunday: K.K.
-
   If the user asks about booking an appointment, wanting to schedule a session, or something similar, your answer should be: "You can book a session by going to our booking page: /book"
 
   For all other questions, use the provided context and FAQ to answer the user's question.
