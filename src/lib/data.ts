@@ -103,15 +103,10 @@ export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> =
         return [];
     }
 
-    const scheduledStaff: Staff[] = [];
-    for (const staffMember of staff) {
-        const staffId = staffMember.id;
-        const staffSchedule = weeklySchedule[staffId];
-        if (Array.isArray(staffSchedule) && staffSchedule.map(Number).includes(dayOfWeek)) {
-            scheduledStaff.push(staffMember);
-        }
-    }
-    return scheduledStaff;
+    return staff.filter(staffMember => {
+        const staffSchedule = weeklySchedule[staffMember.id];
+        return Array.isArray(staffSchedule) && staffSchedule.includes(dayOfWeek);
+    });
 };
 
 export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
