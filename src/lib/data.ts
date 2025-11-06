@@ -84,7 +84,13 @@ export const getClinicData = async (): Promise<ClinicData> => {
 
 export const updateClinicData = async (data: ClinicData): Promise<ClinicData> => {
   const db = await readDb();
-  db.clinicData = data;
+  const schedule = data.weeklySchedule || {};
+  for (const staffMember of data.staff) {
+    if (!schedule[staffMember.id]) {
+      schedule[staffMember.id] = [];
+    }
+  }
+  db.clinicData = {...data, weeklySchedule: schedule};
   await writeDb(db);
   return db.clinicData;
 };
@@ -97,7 +103,7 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
   // 1. Filter staff who are scheduled to work on the given day
   const scheduledStaff = staff.filter(staffMember => {
     const schedule = weeklySchedule?.[staffMember.id];
-    return schedule?.includes(dayOfWeek);
+    return schedule && schedule.includes(dayOfWeek);
   });
 
   // 2. Filter out staff who are busy with one-off sessions
@@ -156,5 +162,4 @@ export const getAllBookings = async (): Promise<Booking[]> => {
   // Return bookings sorted by date, most recent first
   return (db.bookings || []).sort((a, b) => new Date(b.bookingTime).getTime() - new Date(a.bookingTime).getTime());
 };
-
     
