@@ -8,6 +8,6 @@ export async function getClinicDataForClient(): Promise<ClinicData> {
     return await getClinicData();
 }
 
-export async function getAvailableStaffForClient(): Promise<Staff[]> {
-    return await getAvailableStaff();
+export async function getAvailableStaffForClient(forDate?: Date): Promise<Staff[]> {
+    return await getAvailableStaff(forDate);
 }

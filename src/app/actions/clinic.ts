@@ -31,6 +31,7 @@ const clinicSchema = z.object({
     question: z.string().min(1, "FAQ question cannot be empty."),
     answer: z.string().min(1, "FAQ answer cannot be empty."),
   })),
+  weeklySchedule: z.record(z.array(z.number())),
 });
 
 export async function saveClinicData(formData: unknown) {
@@ -44,9 +45,18 @@ export async function saveClinicData(formData: unknown) {
   }
 
   try {
-    await updateClinicData(validatedFields.data);
+    // Make sure we have a schedule for every staff member
+    const schedule = validatedFields.data.weeklySchedule || {};
+    for (const staffMember of validatedFields.data.staff) {
+      if (!schedule[staffMember.id]) {
+        schedule[staffMember.id] = [];
+      }
+    }
+    
+    await updateClinicData({...validatedFields.data, weeklySchedule: schedule});
     revalidatePath('/admin');
     revalidatePath('/chat');
+    revalidatePath('/book');
     return { success: true };
   } catch (error) {
     return {

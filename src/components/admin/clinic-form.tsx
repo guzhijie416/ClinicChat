@@ -1,14 +1,14 @@
 
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PlusCircle, Trash2 } from "lucide-react";
 import type { ClinicData } from "@/types";
 import { saveClinicData } from "@/app/actions/clinic";
@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { addMinutes, isAfter } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const clinicFormSchema = z.object({
   name: z.string().min(1, "Clinic name is required."),
@@ -44,6 +45,7 @@ const clinicFormSchema = z.object({
     question: z.string().min(1, "FAQ question cannot be empty."),
     answer: z.string().min(1, "FAQ answer cannot be empty."),
   })),
+  weeklySchedule: z.record(z.array(z.number())),
 });
 
 
@@ -55,6 +57,16 @@ interface ClinicFormProps {
 
 let fieldIdCounter = 0;
 const generateFieldId = () => `id-${Date.now()}-${fieldIdCounter++}`;
+
+const daysOfWeek = [
+  { id: 1, label: 'Mon' },
+  { id: 2, label: 'Tue' },
+  { id: 3, label: 'Wed' },
+  { id: 4, label: 'Thu' },
+  { id: 5, label: 'Fri' },
+  { id: 6, label: 'Sat' },
+  { id: 0, label: 'Sun' },
+];
 
 export function ClinicForm({ defaultValues }: ClinicFormProps) {
   const { toast } = useToast();
@@ -72,6 +84,7 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
       massageServices: defaultValues.massageServices?.map(s => ({...s, id: s.id || generateFieldId() })) || [],
       sessions: defaultValues.sessions?.map(s => ({...s, id: s.id || generateFieldId() })) || [],
       faq: defaultValues.faq?.map(f => ({...f, id: f.id || generateFieldId() })) || [],
+      weeklySchedule: defaultValues.weeklySchedule || {},
     },
   });
   
@@ -113,6 +126,14 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
       });
     }
   };
+  
+  const handleRemoveStaff = (index: number) => {
+    const staffId = form.getValues(`staff.${index}.id`);
+    const newSchedule = { ...form.getValues('weeklySchedule') };
+    delete newSchedule[staffId];
+    form.setValue('weeklySchedule', newSchedule);
+    removeStaff(index);
+  }
 
   useEffect(() => {
     if (!isClient) return;
@@ -176,20 +197,65 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
         
         <Card>
           <CardHeader>
-            <CardTitle>Therapists</CardTitle>
+            <CardTitle>Therapists & Weekly Schedule</CardTitle>
+            <CardDescription>Manage therapists and their regular working days.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {staffFields.map((field, index) => (
-              <div key={field.id} className="flex items-center gap-2">
-                <FormField control={form.control} name={`staff.${index}.name`} render={({ field }) => (
-                  <FormItem className="flex-grow">
-                    <FormControl><Input {...field} placeholder="Staff member's name" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <Button type="button" variant="ghost" size="icon" onClick={() => removeStaff(index)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div key={field.id} className="p-4 border rounded-lg space-y-4">
+                <div className="flex items-start gap-2">
+                  <FormField control={form.control} name={`staff.${index}.name`} render={({ field }) => (
+                    <FormItem className="flex-grow">
+                      <FormLabel>Therapist Name</FormLabel>
+                      <FormControl><Input {...field} placeholder="Staff member's name" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveStaff(index)} className="mt-8">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <FormField
+                  control={form.control}
+                  name={`weeklySchedule.${field.id}`}
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Working Days</FormLabel>
+                      <div className="flex flex-wrap gap-4">
+                        {daysOfWeek.map((day) => (
+                          <FormField
+                            key={day.id}
+                            control={form.control}
+                            name={`weeklySchedule.${field.id}`}
+                            render={({ field: controllerField }) => {
+                              return (
+                                <FormItem key={day.id} className="flex flex-row items-start space-x-2 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={controllerField.value?.includes(day.id)}
+                                      onCheckedChange={(checked) => {
+                                        const currentValue = controllerField.value || [];
+                                        return checked
+                                          ? controllerField.onChange([...currentValue, day.id])
+                                          : controllerField.onChange(
+                                              currentValue.filter(
+                                                (value) => value !== day.id
+                                              )
+                                            );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">{day.label}</FormLabel>
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             ))}
             <Button type="button" variant="outline" size="sm" onClick={() => appendStaff({ id: generateFieldId(), name: "" })}>
@@ -245,8 +311,8 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Therapist Schedule</CardTitle>
-            <FormDescription>Add current sessions to mark therapists as busy. Sessions will be automatically removed after they finish.</FormDescription>
+            <CardTitle>Therapist Day Schedule</CardTitle>
+            <CardDescription>Add current one-off sessions to mark therapists as busy. Sessions will be automatically removed after they finish.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {isClient && sessionFields.map((field, index) => (

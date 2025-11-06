@@ -6,24 +6,24 @@ import { BookingForm } from '@/components/booking/booking-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Home, MessageSquare } from 'lucide-react';
-import { getClinicDataForClient, getAvailableStaffForClient } from '@/app/actions/data';
+import { getClinicDataForClient } from '@/app/actions/data';
 
 
 export default function BookPage() {
   const [clinicData, setClinicData] = useState<ClinicData | null>(null);
-  const [availableStaff, setAvailableStaff] = useState<Staff[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
+      setIsLoading(true);
       const data = await getClinicDataForClient();
-      const staff = await getAvailableStaffForClient();
       setClinicData(data);
-      setAvailableStaff(staff);
+      setIsLoading(false);
     }
     loadData();
   }, []);
 
-  if (!clinicData) {
+  if (isLoading || !clinicData) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div>Loading...</div>
@@ -56,7 +56,7 @@ export default function BookPage() {
             </Button>
           </div>
         </div>
-        <BookingForm clinicData={clinicData} availableStaff={availableStaff} />
+        <BookingForm clinicData={clinicData} />
       </div>
     </div>
   );

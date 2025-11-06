@@ -1,5 +1,6 @@
-import type { ClinicData, Booking, Staff, Session } from '@/types';
-import { addMinutes, isAfter } from 'date-fns';
+
+import type { ClinicData, Booking, Staff, Session, WeeklySchedule } from '@/types';
+import { addMinutes, isAfter, getDay } from 'date-fns';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -42,6 +43,11 @@ const defaultData: Db = {
         answer: 'Deep tissue massage is a massage technique that\'s mainly used to treat musculoskeletal issues, such as strains and sports injuries. It involves applying sustained pressure using slow, deep strokes to target the inner layers of your muscles and connective tissues.'
       }
     ],
+    weeklySchedule: {
+      '1': [1,2,3,4,5], // Evelyn works Mon-Fri
+      '2': [1,2,3,4,5], // Marco works Mon-Fri
+      '3': [6,0]       // Aisha works Sat, Sun
+    }
   },
   bookings: []
 };
@@ -83,10 +89,24 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
   return db.clinicData;
 };
 
-export const getAvailableStaff = async (): Promise<Staff[]> => {
+export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
   const data = await getClinicData();
-  const now = new Date();
+  const aDate = forDate ? new Date(forDate) : new Date();
 
+  // 1. Filter by weekly schedule if a date is provided
+  let staffOnDay: Staff[];
+  if (forDate) {
+    const dayOfWeek = getDay(aDate); // Sunday is 0, Monday is 1, etc.
+    const scheduledStaffIds = Object.keys(data.weeklySchedule).filter(staffId => 
+      data.weeklySchedule[staffId].includes(dayOfWeek)
+    );
+    staffOnDay = data.staff.filter(staff => scheduledStaffIds.includes(staff.id));
+  } else {
+    // If no date, assume we check for today, but for simplicity let's just use all staff as the base
+    staffOnDay = data.staff;
+  }
+  
+  // 2. Filter by current sessions (busy staff)
   const busyStaffIds = new Set(
     data.sessions
       .map(session => {
@@ -97,9 +117,10 @@ export const getAvailableStaff = async (): Promise<Staff[]> => {
           const startTime = new Date(session.startTime);
           const endTime = addMinutes(startTime, service.duration);
           
+          // A staff member is busy if the selected date/time is between their session's start and end time.
           return {
             staffId: session.staffId,
-            isBusy: isAfter(now, startTime) && isAfter(endTime, now)
+            isBusy: isAfter(aDate, startTime) && isAfter(endTime, aDate)
           };
         } catch(e){
           return null;
@@ -109,7 +130,7 @@ export const getAvailableStaff = async (): Promise<Staff[]> => {
       .map(item => item!.staffId)
   );
 
-  return data.staff.filter(staff => !busyStaffIds.has(staff.id));
+  return staffOnDay.filter(staff => !busyStaffIds.has(staff.id));
 };
 
 export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booking> => {

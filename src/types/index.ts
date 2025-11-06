@@ -24,6 +24,11 @@ export type FAQ = {
   answer: string;
 };
 
+// e.g. { 'staff-id-1': [1, 2, 5] } means staff 1 works on Mon, Tue, Fri
+export type WeeklySchedule = {
+  [staffId: string]: number[]; // Array of numbers 0 (Sun) to 6 (Sat)
+}
+
 export type ClinicData = {
   name: string;
   address: string;
@@ -33,6 +38,7 @@ export type ClinicData = {
   massageServices: MassageService[];
   sessions: Session[];
   faq: FAQ[];
+  weeklySchedule: WeeklySchedule;
 };
 
 export type Message = {

@@ -24,7 +24,8 @@ import type { ClinicData, Staff } from '@/types';
 import { submitBooking } from '@/app/actions/booking';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useTransition } from 'react';
+import { useTransition, useState, useEffect, useMemo } from 'react';
+import { getAvailableStaffForClient } from '@/app/actions/data';
 
 const bookingFormSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
@@ -39,12 +40,13 @@ type BookingFormValues = z.infer<typeof bookingFormSchema>;
 
 interface BookingFormProps {
   clinicData: ClinicData;
-  availableStaff: Staff[];
 }
 
-export function BookingForm({ clinicData, availableStaff }: BookingFormProps) {
+export function BookingForm({ clinicData }: BookingFormProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const [availableStaff, setAvailableStaff] = useState<Staff[]>([]);
+  const [isFetchingStaff, setIsFetchingStaff] = useState(false);
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -55,6 +57,31 @@ export function BookingForm({ clinicData, availableStaff }: BookingFormProps) {
       bookingTime: '',
     },
   });
+
+  const selectedBookingTime = form.watch('bookingTime');
+
+  useEffect(() => {
+    async function fetchStaff() {
+      if (!selectedBookingTime) {
+        setAvailableStaff([]);
+        return;
+      }
+      setIsFetchingStaff(true);
+      try {
+        const staff = await getAvailableStaffForClient(new Date(selectedBookingTime));
+        setAvailableStaff(staff);
+      } catch (error) {
+        console.error("Failed to fetch available staff", error);
+        setAvailableStaff([]);
+      } finally {
+        setIsFetchingStaff(false);
+      }
+    }
+
+    // When the booking time changes, refetch the available staff
+    fetchStaff();
+  }, [selectedBookingTime]);
+
 
   const onSubmit = (data: BookingFormValues) => {
     startTransition(async () => {
@@ -70,6 +97,11 @@ export function BookingForm({ clinicData, availableStaff }: BookingFormProps) {
       }
     });
   };
+
+  const isButtonDisabled = useMemo(() => {
+    return isPending || isFetchingStaff || !selectedBookingTime || availableStaff.length === 0
+  }, [isPending, isFetchingStaff, selectedBookingTime, availableStaff.length]);
+
 
   return (
     <Form {...form}>
@@ -118,6 +150,19 @@ export function BookingForm({ clinicData, availableStaff }: BookingFormProps) {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="bookingTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Date & Time</FormLabel>
+                  <FormControl>
+                    <Input type="datetime-local" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
              <FormField
               control={form.control}
               name="staffId"
@@ -127,33 +172,23 @@ export function BookingForm({ clinicData, availableStaff }: BookingFormProps) {
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    disabled={!selectedBookingTime || isFetchingStaff}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select an available therapist" />
+                        <SelectValue placeholder={!selectedBookingTime ? "Please select a time first" : (isFetchingStaff ? "Finding therapists..." : "Select an available therapist")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {availableStaff.length > 0 ? availableStaff.map((staff) => (
+                      {!isFetchingStaff && availableStaff.length > 0 ? availableStaff.map((staff) => (
                         <SelectItem key={staff.id} value={staff.id}>
                           {staff.name}
                         </SelectItem>
-                      )) : <SelectItem value="no-one" disabled>No therapists available</SelectItem>}
+                      )) : <SelectItem value="no-one" disabled>
+                          {!selectedBookingTime ? "Select a date to see availability" : "No therapists available for this time"}
+                        </SelectItem>}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="bookingTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preferred Time</FormLabel>
-                  <FormControl>
-                    <Input type="datetime-local" {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -162,7 +197,7 @@ export function BookingForm({ clinicData, availableStaff }: BookingFormProps) {
           <CardFooter>
             <Button
               type="submit"
-              disabled={isPending || availableStaff.length === 0}
+              disabled={isButtonDisabled}
               className="w-full"
             >
               {isPending ? 'Generating Pass...' : 'Get Your Pass'}
