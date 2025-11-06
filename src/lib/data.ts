@@ -100,23 +100,22 @@ export const getScheduledStaffForDay = async (forDate?: Date): Promise<Staff[]> 
   const aDate = forDate ? new Date(forDate) : new Date();
   const dayOfWeek = getDay(aDate);
 
-  // 1. Filter staff who are scheduled to work on the given day
+  if (!weeklySchedule) {
+    return [];
+  }
+  
   return staff.filter(staffMember => {
-    const schedule = weeklySchedule?.[staffMember.id];
-    return schedule && schedule.includes(dayOfWeek);
+    const staffSchedule = weeklySchedule[staffMember.id];
+    return Array.isArray(staffSchedule) && staffSchedule.includes(dayOfWeek);
   });
 };
 
 export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
-  const { staff, weeklySchedule, sessions, massageServices } = await getClinicData();
+  const { sessions, massageServices } = await getClinicData();
   const aDate = forDate ? new Date(forDate) : new Date();
-  const dayOfWeek = getDay(aDate);
 
-  // 1. Filter staff who are scheduled to work on the given day
-  const scheduledStaff = staff.filter(staffMember => {
-    const schedule = weeklySchedule?.[staffMember.id];
-    return schedule && schedule.includes(dayOfWeek);
-  });
+  // 1. Get staff scheduled to work on the given day
+  const scheduledStaff = await getScheduledStaffForDay(aDate);
 
   // 2. Filter out staff who are busy with one-off sessions
   const busyStaffIds = new Set(
@@ -128,6 +127,7 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
         try {
           const startTime = parseISO(session.startTime);
           const endTime = addMinutes(startTime, service.duration);
+          // Check if the requested time `aDate` falls within an existing session
           return aDate >= startTime && aDate < endTime;
         } catch(e){
           console.error(`Invalid date format for session ${session.id}: ${session.startTime}`);
