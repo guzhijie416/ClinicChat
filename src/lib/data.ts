@@ -102,7 +102,7 @@ export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> =
     if (!weeklySchedule || !staff) {
         return [];
     }
-
+    
     return staff.filter(staffMember => {
         const staffSchedule = weeklySchedule[staffMember.id];
         return Array.isArray(staffSchedule) && staffSchedule.includes(dayOfWeek);
@@ -173,4 +173,3 @@ export const getAllBookings = async (): Promise<Booking[]> => {
   // Return bookings sorted by date, most recent first
   return (db.bookings || []).sort((a, b) => new Date(b.bookingTime).getTime() - new Date(a.bookingTime).getTime());
 };
-    
