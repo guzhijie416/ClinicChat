@@ -98,12 +98,12 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
 export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> => {
     const db = await readDb();
     const dayOfWeek = getDay(forDate);
-    
-    // Correctly access staff and weeklySchedule from the nested clinicData object
+
     const staff = db.clinicData.staff;
     const weeklySchedule = db.clinicData.weeklySchedule;
 
     if (!weeklySchedule || !staff || !Array.isArray(staff)) {
+        console.error("Staff list or weekly schedule is missing or invalid in db.json");
         return [];
     }
     
