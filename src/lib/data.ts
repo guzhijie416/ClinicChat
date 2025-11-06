@@ -97,18 +97,18 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
   let staffOnDay: Staff[];
   if (forDate) {
     const dayOfWeek = getDay(aDate); // Sunday is 0, Monday is 1, etc.
-    const scheduledStaffIds = Object.keys(data.weeklySchedule).filter(staffId => 
-      data.weeklySchedule[staffId].includes(dayOfWeek)
+    const scheduledStaffIds = Object.keys(data.weeklySchedule || {}).filter(staffId => 
+      (data.weeklySchedule[staffId] || []).includes(dayOfWeek)
     );
     staffOnDay = data.staff.filter(staff => scheduledStaffIds.includes(staff.id));
   } else {
-    // If no date, assume we check for today, but for simplicity let's just use all staff as the base
+    // If no date, assume all staff could be available and just filter by sessions.
     staffOnDay = data.staff;
   }
   
   // 2. Filter by current sessions (busy staff)
   const busyStaffIds = new Set(
-    data.sessions
+    (data.sessions || [])
       .map(session => {
         const service = data.massageServices.find(s => s.id === session.massageServiceId);
         if (!service || !session.startTime) return null;
@@ -162,5 +162,5 @@ export const getBooking = async (id: string): Promise<Booking | undefined> => {
 export const getAllBookings = async (): Promise<Booking[]> => {
   const db = await readDb();
   // Return bookings sorted by date, most recent first
-  return db.bookings.sort((a, b) => new Date(b.bookingTime).getTime() - new Date(a.bookingTime).getTime());
+  return (db.bookings || []).sort((a, b) => new Date(b.bookingTime).getTime() - new Date(a.bookingTime).getTime());
 };
