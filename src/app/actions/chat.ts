@@ -3,7 +3,7 @@
 
 import { answerClinicQuestions } from '@/ai/flows/answer-clinic-questions';
 import { getClinicData } from '@/lib/data';
-import { format } from 'date-fns';
+import { getDay } from 'date-fns';
 
 export async function submitMessage(message: string): Promise<string> {
   if (!message.trim()) {
@@ -20,8 +20,8 @@ export async function submitMessage(message: string): Promise<string> {
       schedule: clinicData.weeklySchedule
     };
     
-    // Get the name of the current day, e.g., "Thursday"
-    const today = format(new Date(), 'EEEE');
+    // Get the number of the current day, e.g., 4 for Thursday
+    const todayDayNumber = getDay(new Date());
 
     const aiResponse = await answerClinicQuestions({
       question: message,
@@ -30,7 +30,7 @@ export async function submitMessage(message: string): Promise<string> {
       clinicHours: clinicData.hours,
       clinicPhone: clinicData.phone,
       staffAndSchedule: JSON.stringify(staffAndSchedule, null, 2),
-      today: today,
+      todayDayNumber: todayDayNumber,
       faq: faqString,
     });
 

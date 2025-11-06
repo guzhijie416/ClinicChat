@@ -18,7 +18,7 @@ const AnswerClinicQuestionsInputSchema = z.object({
   clinicHours: z.string().describe('The hours of operation of the clinic.'),
   clinicPhone: z.string().describe('The phone number of the clinic.'),
   staffAndSchedule: z.string().describe('A JSON string representing all staff members and their weekly schedules. The schedule is a list of numbers where 0=Sunday, 1=Monday, ..., 6=Saturday.'),
-  today: z.string().describe('The name of the current day of the week, e.g., "Thursday".'),
+  todayDayNumber: z.number().describe('The number representing the current day of the week, where 0=Sunday, 1=Monday, ..., 6=Saturday.'),
   faq: z.string().describe('Frequently asked questions about the clinic.'),
 });
 export type AnswerClinicQuestionsInput = z.infer<typeof AnswerClinicQuestionsInputSchema>;
@@ -39,7 +39,6 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   prompt: `You are a helpful AI assistant for a clinic. Your task is to answer user questions based on the provided information.
 
   CONTEXT:
-  - Today is {{{today}}}.
   - The clinic's name is {{{clinicName}}}.
   - Address: {{{clinicAddress}}}
   - Phone: {{{clinicPhone}}}
@@ -48,7 +47,8 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   STAFF & SCHEDULE:
   - The following JSON data contains all staff members and their weekly work schedule.
   - The schedule is an array of numbers representing days of the week: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday.
-  - When asked who is working today, you MUST use the schedule data and the fact that today is {{{today}}} to determine the list of available staff.
+  - Today's day number is {{{todayDayNumber}}}.
+  - When asked who is working today, you MUST use this number to check against the schedule data to determine the list of available staff.
   - Staff and Schedule Data: {{{staffAndSchedule}}}
 
   FAQ:
