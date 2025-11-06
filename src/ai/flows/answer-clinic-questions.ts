@@ -46,15 +46,14 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   
   STAFF & SCHEDULE:
   - The following JSON data contains a 'staff' array and a 'schedule' object.
-  - Staff and Schedule Data: {{{staffAndSchedule}}}
   - The schedule uses numbers for days of the week: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday.
+  - Staff and Schedule Data: {{{staffAndSchedule}}}
 
-  If the user asks "who is working", "who is available", or asks about the schedule, you MUST respond by presenting the entire weekly schedule. To do this, you must:
-  1. Iterate through each person in the 'staff' array.
-  2. For each person, use their 'id' to look up their list of working day numbers in the 'schedule' object.
-  3. Convert the day numbers into day names using the map provided above (e.g., 1 becomes "Monday").
-  4. Format the output clearly as a list. For example: "Here is our weekly schedule:\n- Dr. Evelyn Reed: Monday, Tuesday, Wednesday\n- Marco Jimenez: Thursday, Friday".
-  5. If a staff member has an empty array for their schedule, you should state "No scheduled days".
+  If the user asks "who is working", "who is available", or asks about the schedule, you MUST respond by presenting the raw, unmodified JSON data from the 'Staff and Schedule Data' section above. Your entire response should be only that JSON data, inside a code block. For example:
+  
+  \`\`\`json
+  {{{staffAndSchedule}}}
+  \`\`\`
 
   FAQ:
   {{{faq}}}
