@@ -25,6 +25,7 @@ export type AnswerClinicQuestionsInput = z.infer<typeof AnswerClinicQuestionsInp
 
 const AnswerClinicQuestionsOutputSchema = z.object({
   answer: z.string().describe('The answer to the question about the clinic.'),
+  action: z.enum(['BOOK_NOW', 'NONE']).optional().describe("Set to 'BOOK_NOW' if the user wants to book an appointment."),
 });
 export type AnswerClinicQuestionsOutput = z.infer<typeof AnswerClinicQuestionsOutputSchema>;
 
@@ -38,43 +39,28 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   output: {schema: AnswerClinicQuestionsOutputSchema},
   prompt: `You are a helpful AI assistant for a clinic. Your task is to answer user questions based on the provided information.
 
-  First and most importantly: If the user asks about booking an appointment, wanting to schedule a session, or something similar, you MUST reply with the exact phrase: "You can book a session now. [ACTION:BOOK_NOW]" and nothing else.
+  1.  **Booking Intent:** First, determine if the user wants to book an appointment, schedule a session, or something similar.
+      -   If they do, set the 'action' field in your output to 'BOOK_NOW'.
+      -   Set the 'answer' field to "You can book a session now."
 
-  If the question is not about booking, then use the context below.
+  2.  **Schedule Intent:** If the user is asking "who is working", "who is available", or about schedules:
+      -   Parse the STAFF & SCHEDULE JSON. It has a 'staff' array and a 'schedule' object. The 'schedule' object keys are staff IDs, and values are arrays of day numbers (0-6, where 0 is Sunday).
+      -   Create a mapping of day numbers to day names: 0: Sunday, 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday.
+      -   Initialize a schedule for the week (e.g., { Monday: [], Tuesday: [], ... }).
+      -   Iterate through each staff member. For their 'id', find their working days in the 'schedule' object.
+      -   For each working day, add the staff member's 'name' to that day's list.
+      -   Format the output starting with "Here is our weekly schedule:". For each day, list the day (in bold using **Day**) and the names of staff working. If no one is working, state that.
+      -   Set the 'action' field to 'NONE'.
+
+  3.  **General Questions:** For all other questions, use the provided context and FAQ to give a helpful answer.
+      -   Set the 'action' field to 'NONE'.
 
   CONTEXT:
-  - The clinic's name is {{{clinicName}}}.
-  - Address: {{{clinicAddress}}}
+  - Clinic: {{{clinicName}}} at {{{clinicAddress}}}
   - Phone: {{{clinicPhone}}}
   - Hours: {{{clinicHours}}}
-  
-  STAFF & SCHEDULE JSON:
-  {{{staffAndSchedule}}}
-  
-  FAQ:
-  {{{faq}}}
-
-  If the user's question is about "who is working", "who is available", "what is your schedule", or similar, you MUST follow these steps to construct the response:
-  1. Parse the STAFF & SCHEDULE JSON. It contains a 'staff' array and a 'schedule' object. The 'schedule' object keys are staff IDs, and values are arrays of day numbers (0-6, where 0 is Sunday).
-  2. Create a mapping of day numbers to day names: 0: Sunday, 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday.
-  3. Initialize a schedule for the week with empty lists for each day (e.g., { Monday: [], Tuesday: [], ... }).
-  4. Iterate through each staff member in the 'staff' array. For each member, get their 'id' and 'name'.
-  5. Use the staff member's 'id' to find their working days in the 'schedule' object.
-  6. For each working day number, find the corresponding day name from the map and add the staff member's 'name' to that day's list.
-  7. After processing all staff, format the final output. Start with "Here is our weekly schedule:".
-  8. For each day of the week from Monday to Sunday, list the day and the names of the staff working.
-  9. If no one is scheduled for a day, state that clearly (e.g., "No one scheduled").
-  10. When listing the day of the week, wrap it in double asterisks, like **Monday**.
-
-  Example Output:
-  Here is our weekly schedule:
-  - **Monday**: Dr. Evelyn Reed, Marco Jimenez
-  - **Tuesday**: Dr. Evelyn Reed, Marco Jimenez
-  - **Wednesday**: No one scheduled
-  - **Thursday**: Aisha Chen
-  ...and so on.
-  
-  For all other questions, use the provided context and FAQ to answer the user's question.
+  - Staff & Schedule JSON: {{{staffAndSchedule}}}
+  - FAQ: {{{faq}}}
 
   Question: {{{question}}}`,
 });

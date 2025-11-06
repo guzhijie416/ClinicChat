@@ -29,7 +29,12 @@ export async function submitMessage(message: string): Promise<string> {
       faq: faqString,
     });
 
-    return aiResponse.answer;
+    let finalResponse = aiResponse.answer;
+    if (aiResponse.action === 'BOOK_NOW') {
+      finalResponse += ' [ACTION:BOOK_NOW]';
+    }
+
+    return finalResponse;
   } catch (error) {
     console.error("Error calling AI flow:", error);
     return "I'm sorry, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment.";
