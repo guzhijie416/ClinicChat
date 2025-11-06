@@ -3,7 +3,6 @@
 
 import { answerClinicQuestions } from '@/ai/flows/answer-clinic-questions';
 import { getClinicData } from '@/lib/data';
-import { getDay } from 'date-fns';
 
 export async function submitMessage(message: string): Promise<string> {
   if (!message.trim()) {
