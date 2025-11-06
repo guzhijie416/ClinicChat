@@ -38,6 +38,10 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   output: {schema: AnswerClinicQuestionsOutputSchema},
   prompt: `You are a helpful AI assistant for a clinic. Your task is to answer user questions based on the provided information.
 
+  First and most importantly: If the user asks about booking an appointment, wanting to schedule a session, or something similar, you MUST reply with the exact phrase: "You can book a session now. [ACTION:BOOK_NOW]" and nothing else.
+
+  If the question is not about booking, then use the context below.
+
   CONTEXT:
   - The clinic's name is {{{clinicName}}}.
   - Address: {{{clinicAddress}}}
@@ -69,9 +73,7 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   - **Wednesday**: No one scheduled
   - **Thursday**: Aisha Chen
   ...and so on.
-
-  If the user asks about booking an appointment, wanting to schedule a session, or something similar, you MUST reply with the exact phrase: "You can book a session now. [ACTION:BOOK_NOW]"
-
+  
   For all other questions, use the provided context and FAQ to answer the user's question.
 
   Question: {{{question}}}`,
