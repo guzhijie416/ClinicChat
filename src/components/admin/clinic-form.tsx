@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { addMinutes, isAfter } from "date-fns";
+import { addMinutes, isAfter, parseISO } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const clinicFormSchema = z.object({
@@ -144,7 +144,7 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
         const service = massageServices.find(s => s.id === session.massageServiceId);
         if (!service || !session.startTime) return false;
         try {
-          const startTime = new Date(session.startTime);
+          const startTime = parseISO(session.startTime);
           const endTime = addMinutes(startTime, service.duration);
           return isAfter(endTime, now);
         } catch (e) {
