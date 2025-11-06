@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef } from 'react';
@@ -22,7 +23,11 @@ const TypingIndicator = () => (
 
 const MessageContent = ({ content }: { content: string }) => {
   const linkRegex = /(\/book)/g;
-  const parts = content.split(linkRegex);
+  const boldRegex = /(\*\*.*?\*\*)/g;
+
+  // Combine regexes for splitting
+  const combinedRegex = new RegExp(`${linkRegex.source}|${boldRegex.source}`, 'g');
+  const parts = content.split(combinedRegex).filter(Boolean);
 
   return (
     <p className="text-sm">
@@ -33,6 +38,9 @@ const MessageContent = ({ content }: { content: string }) => {
               {part}
             </Link>
           );
+        }
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={index}>{part.slice(2, -2)}</strong>;
         }
         return part;
       })}

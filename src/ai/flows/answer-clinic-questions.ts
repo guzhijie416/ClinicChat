@@ -51,23 +51,26 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   {{{faq}}}
 
   If the user's question is about "who is working", "who is available", "what is your schedule", or similar, you MUST follow these steps to construct the response:
-  1.  Parse the STAFF & SCHEDULE JSON. It has a 'staff' array and a 'schedule' object.
-  2.  Create a mapping of day numbers to day names: 0: Sunday, 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday.
-  3.  Create a data structure to hold the schedule, with an empty list for each day of the week (Monday to Sunday).
-  4.  Iterate through each staff member in the 'staff' array. For each member, get their 'id' and 'name'.
-  5.  Use the staff member's 'id' to look up their schedule in the 'schedule' object. This will give you an array of day numbers they work.
-  6.  For each day number in their schedule, find the corresponding day name from your map and add the staff member's 'name' to that day's list in your schedule data structure.
-  7.  After processing all staff members, format the final output as a simple list, starting with "Here is our weekly schedule:". For each day, list the names of the staff working. If no one is scheduled for a day, state that clearly (e.g., "Monday: No one scheduled").
+  1. Parse the STAFF & SCHEDULE JSON. It has a 'staff' array and a 'schedule' object. The 'schedule' object's keys are staff IDs, and the values are arrays of day numbers they work.
+  2. Create a mapping of day numbers to day names: 0: Sunday, 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday.
+  3. Create a data structure that will hold the final schedule for each day, like: { Monday: [], Tuesday: [], ... }.
+  4. Iterate through each staff member in the 'staff' array. For each member, get their 'id' and 'name'.
+  5. Use the staff member's 'id' to look up their schedule in the 'schedule' object. This will give you an array of day numbers they work.
+  6. For each day number in their schedule, find the corresponding day name from your map and add the staff member's 'name' to that day's list in your final schedule data structure.
+  7. After processing all staff, format the final output as a list. Start with "Here is our weekly schedule:".
+  8. For each day of the week from Monday to Sunday, list the names of the staff working.
+  9. If no one is scheduled for a day, state that clearly (e.g., "No one scheduled").
+  10. IMPORTANT: When listing the day of the week, wrap it in double asterisks, like **Monday**.
 
   Example Output:
   Here is our weekly schedule:
-  - Monday: Dr. Evelyn Reed, Marco Jimenez
-  - Tuesday: Dr. Evelyn Reed, Marco Jimenez
-  - Wednesday: No one scheduled
-  - Thursday: Aisha Chen
-  - Friday: Aisha Chen
-  - Saturday: K.K.
-  - Sunday: K.K.
+  - **Monday**: Dr. Evelyn Reed, Marco Jimenez
+  - **Tuesday**: Dr. Evelyn Reed, Marco Jimenez
+  - **Wednesday**: No one scheduled
+  - **Thursday**: Aisha Chen
+  - **Friday**: Aisha Chen
+  - **Saturday**: K.K. 
+  - **Sunday**: K.K.
 
   If the user asks about booking an appointment, wanting to schedule a session, or something similar, your answer should be: "You can book a session by going to our booking page: /book"
 
