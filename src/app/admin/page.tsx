@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookingsList } from "@/components/admin/bookings-list";
 import { Separator } from "@/components/ui/separator";
+import { QRCodeCard } from "@/components/admin/qr-code-card";
 
 export default async function AdminPage() {
   const clinicData = await getClinicData();
@@ -27,7 +28,15 @@ export default async function AdminPage() {
           </Button>
         </div>
 
-        <BookingsList bookings={bookings} clinicData={clinicData} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+                <BookingsList bookings={bookings} clinicData={clinicData} />
+            </div>
+            <div className="space-y-8">
+                <QRCodeCard />
+            </div>
+        </div>
+
 
         <Separator />
         

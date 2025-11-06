@@ -24,15 +24,15 @@ export default function Home() {
         <section className="py-20 md:py-32">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-4xl md:text-6xl font-bold font-headline text-foreground tracking-tight">
-              Instant answers for your clients.
+              An AI Assistant For Your Clinic.
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              ClinicChat provides your clients with an AI-powered assistant to answer their questions about your services, availability, and more, 24/7.
+              ClinicChat is an AI-powered assistant that answers client questions about your services, availability, and more, 24/7.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild size="lg">
                 <Link href="/chat">
-                  Try the Demo Chat
+                  Chat with the Assistant
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
