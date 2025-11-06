@@ -93,41 +93,38 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
   const data = await getClinicData();
   const aDate = forDate ? new Date(forDate) : new Date();
 
-  // 1. Filter by weekly schedule if a date is provided
-  let staffOnDay: Staff[];
-  if (forDate) {
-    const dayOfWeek = getDay(aDate); // Sunday is 0, Monday is 1, etc.
-    const scheduledStaffIds = Object.keys(data.weeklySchedule || {}).filter(staffId => 
+  // 1. Filter by weekly schedule
+  const dayOfWeek = getDay(aDate); // Sunday is 0, Monday is 1, etc.
+  const scheduledStaffIds = new Set(
+    Object.keys(data.weeklySchedule || {}).filter(staffId => 
       (data.weeklySchedule[staffId] || []).includes(dayOfWeek)
-    );
-    staffOnDay = data.staff.filter(staff => scheduledStaffIds.includes(staff.id));
-  } else {
-    // If no date, assume all staff could be available and just filter by sessions.
-    staffOnDay = data.staff;
-  }
+    )
+  );
+
+  const staffOnDay = data.staff.filter(staff => scheduledStaffIds.has(staff.id));
   
-  // 2. Filter by current sessions (busy staff)
+  // 2. Filter by current one-off sessions (busy staff)
   const busyStaffIds = new Set(
     (data.sessions || [])
-      .map(session => {
+      .filter(session => {
         const service = data.massageServices.find(s => s.id === session.massageServiceId);
-        if (!service || !session.startTime) return null;
+        if (!service || !session.startTime) return false;
 
         try {
           const startTime = new Date(session.startTime);
+          // Only consider sessions on the same day.
+          if (startTime.toDateString() !== aDate.toDateString()) {
+            return false;
+          }
           const endTime = addMinutes(startTime, service.duration);
           
-          // A staff member is busy if the selected date/time is between their session's start and end time.
-          return {
-            staffId: session.staffId,
-            isBusy: isAfter(aDate, startTime) && isAfter(endTime, aDate)
-          };
+          // A staff member is busy if the selected time `aDate` is between a session's start and end time.
+          return isAfter(aDate, startTime) && isAfter(endTime, aDate);
         } catch(e){
-          return null;
+          return false;
         }
       })
-      .filter(item => item?.isBusy)
-      .map(item => item!.staffId)
+      .map(session => session.staffId)
   );
 
   return staffOnDay.filter(staff => !busyStaffIds.has(staff.id));
@@ -148,6 +145,9 @@ export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booki
   };
 
   db.bookings.push(newBooking);
+  if (!db.clinicData.sessions) {
+    db.clinicData.sessions = [];
+  }
   db.clinicData.sessions.push(newSession);
 
   await writeDb(db);
