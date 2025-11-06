@@ -95,6 +95,18 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
   return db.clinicData;
 };
 
+export const getScheduledStaffForDay = async (forDate?: Date): Promise<Staff[]> => {
+  const { staff, weeklySchedule } = await getClinicData();
+  const aDate = forDate ? new Date(forDate) : new Date();
+  const dayOfWeek = getDay(aDate);
+
+  // 1. Filter staff who are scheduled to work on the given day
+  return staff.filter(staffMember => {
+    const schedule = weeklySchedule?.[staffMember.id];
+    return schedule && schedule.includes(dayOfWeek);
+  });
+};
+
 export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
   const { staff, weeklySchedule, sessions, massageServices } = await getClinicData();
   const aDate = forDate ? new Date(forDate) : new Date();
