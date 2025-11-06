@@ -70,7 +70,7 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   - **Thursday**: Aisha Chen
   ...and so on.
 
-  If the user asks about booking an appointment, wanting to schedule a session, or something similar, your answer should be: "You can book a session now. [ACTION:BOOK_NOW]"
+  If the user asks about booking an appointment, wanting to schedule a session, or something similar, you MUST reply with the exact phrase: "You can book a session now. [ACTION:BOOK_NOW]"
 
   For all other questions, use the provided context and FAQ to answer the user's question.
 
