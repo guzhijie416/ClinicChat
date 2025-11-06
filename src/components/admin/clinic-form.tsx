@@ -201,8 +201,8 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
             <CardDescription>Manage therapists and their regular working days.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {staffFields.map((field, index) => (
-              <div key={field.id} className="p-4 border rounded-lg space-y-4">
+            {staffFields.map((staffField, index) => (
+              <div key={staffField.id} className="p-4 border rounded-lg space-y-4">
                 <div className="flex items-start gap-2">
                   <FormField control={form.control} name={`staff.${index}.name`} render={({ field }) => (
                     <FormItem className="flex-grow">
@@ -215,45 +215,47 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-                <FormField
-                  control={form.control}
-                  name={`weeklySchedule.${field.id}`}
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Working Days</FormLabel>
-                      <div className="flex flex-wrap gap-4">
-                        {daysOfWeek.map((day) => (
-                           <Controller
-                            key={day.id}
-                            control={form.control}
-                            name={`weeklySchedule.${field.id}`}
-                            render={({ field: { onChange, value } }) => (
-                                <FormItem className="flex flex-row items-start space-x-2 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={value?.includes(day.id)}
-                                      onCheckedChange={(checked) => {
-                                        const currentSchedule = value || [];
-                                        const newSchedule = checked
-                                          ? [...currentSchedule, day.id]
-                                          : currentSchedule.filter((d) => d !== day.id);
-                                        onChange(newSchedule);
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">{day.label}</FormLabel>
-                                </FormItem>
-                              )}
-                          />
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 <Controller
+                    control={form.control}
+                    name={`weeklySchedule.${staffField.id}`}
+                    render={({ field }) => (
+                      <FormItem>
+                         <FormLabel>Working Days</FormLabel>
+                          <div className="flex flex-wrap gap-4 pt-2">
+                              {daysOfWeek.map((day) => (
+                                  <div key={day.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                          id={`${staffField.id}-${day.id}`}
+                                          checked={field.value?.includes(day.id)}
+                                          onCheckedChange={(checked) => {
+                                              const currentValues = field.value || [];
+                                              if (checked) {
+                                                  field.onChange([...currentValues, day.id]);
+                                              } else {
+                                                  field.onChange(currentValues.filter((value) => value !== day.id));
+                                              }
+                                          }}
+                                      />
+                                      <label
+                                          htmlFor={`${staffField.id}-${day.id}`}
+                                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                      >
+                                          {day.label}
+                                      </label>
+                                  </div>
+                              ))}
+                          </div>
+                          <FormMessage />
+                      </FormItem>
+                    )}
+                 />
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => appendStaff({ id: generateFieldId(), name: "" })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              const newId = generateFieldId();
+              appendStaff({ id: newId, name: "" });
+              form.setValue(`weeklySchedule.${newId}`, []);
+            }}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Therapist
             </Button>
           </CardContent>

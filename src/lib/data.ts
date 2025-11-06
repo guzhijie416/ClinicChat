@@ -97,7 +97,6 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
   // 1. Filter staff who are scheduled to work on the given day
   const scheduledStaff = staff.filter(staffMember => {
     const schedule = weeklySchedule?.[staffMember.id];
-    // A staff member is scheduled if their schedule includes the current day of the week.
     return schedule?.includes(dayOfWeek);
   });
 
@@ -109,12 +108,8 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
         if (!service || !session.startTime) return false;
 
         try {
-          // Use parseISO to correctly handle the datetime-local string
           const startTime = parseISO(session.startTime);
-          
           const endTime = addMinutes(startTime, service.duration);
-          
-          // A staff member is busy if the selected time `aDate` is between a session's start and end time.
           return aDate >= startTime && aDate < endTime;
         } catch(e){
           console.error(`Invalid date format for session ${session.id}: ${session.startTime}`);
