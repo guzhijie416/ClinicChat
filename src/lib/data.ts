@@ -96,8 +96,8 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
 };
 
 export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> => {
-    const clinicData = await getClinicData();
-    const { staff, weeklySchedule } = clinicData;
+    const db = await readDb();
+    const { staff, weeklySchedule } = db.clinicData;
     const dayOfWeek = getDay(forDate);
 
     if (!weeklySchedule || !staff || !Array.isArray(staff)) {
