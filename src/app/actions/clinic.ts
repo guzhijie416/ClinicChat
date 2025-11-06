@@ -46,14 +46,15 @@ export async function saveClinicData(formData: unknown) {
 
   try {
     // Make sure we have a schedule for every staff member
-    const schedule = validatedFields.data.weeklySchedule || {};
-    for (const staffMember of validatedFields.data.staff) {
+    const data = validatedFields.data;
+    const schedule = data.weeklySchedule || {};
+    for (const staffMember of data.staff) {
       if (!schedule[staffMember.id]) {
         schedule[staffMember.id] = [];
       }
     }
     
-    await updateClinicData({...validatedFields.data, weeklySchedule: schedule});
+    await updateClinicData({...data, weeklySchedule: schedule});
     revalidatePath('/admin');
     revalidatePath('/chat');
     revalidatePath('/book');
