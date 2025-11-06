@@ -44,23 +44,32 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   - Phone: {{{clinicPhone}}}
   - Hours: {{{clinicHours}}}
   
-  STAFF & SCHEDULE:
-  - The following JSON data contains a 'staff' array and a 'schedule' object.
-  - The schedule uses numbers for days of the week: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday.
-  - Staff and Schedule Data: {{{staffAndSchedule}}}
-
-  If the user asks "who is working", "who is available", or asks about the schedule, you MUST respond by presenting the raw, unmodified JSON data from the 'Staff and Schedule Data' section above. Your entire response should be only that JSON data, inside a code block. For example:
-  
-  \`\`\`json
+  STAFF & SCHEDULE JSON:
   {{{staffAndSchedule}}}
-  \`\`\`
-
+  
   FAQ:
   {{{faq}}}
 
+  If the user's question is about "who is working", "who is available", "what is your schedule", or similar, you MUST use the provided "STAFF & SCHEDULE JSON" to generate a human-readable weekly schedule. Follow these steps:
+  1. Create a list for each day of the week: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
+  2. The schedule in the JSON uses numbers for days: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 0=Sunday.
+  3. For each person in the 'staff' array, check their 'id' against the 'schedule' object.
+  4. For each day of the week, list the names of the staff members who are scheduled to work. If no one is scheduled, state that.
+  5. Your entire response should be ONLY this formatted schedule. Do not add any other text.
+  
+  Example output format:
+  Here is our weekly schedule:
+  - Monday: Dr. Evelyn Reed, Marco Jimenez
+  - Tuesday: Dr. Evelyn Reed
+  - Wednesday: No one scheduled
+  - Thursday: Aisha Chen
+  - Friday: Dr. Evelyn Reed, Marco Jimenez, Aisha Chen
+  - Saturday: K.K.
+  - Sunday: K.K.
+
   If the user asks about booking an appointment, wanting to schedule a session, or something similar, your answer should be: "You can book a session by going to our booking page: /book"
 
-  Based on all of the above information, please answer the following question.
+  For all other questions, use the provided context and FAQ to answer the user's question.
 
   Question: {{{question}}}`,
 });
