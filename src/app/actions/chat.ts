@@ -2,7 +2,8 @@
 "use server";
 
 import { answerClinicQuestions } from '@/ai/flows/answer-clinic-questions';
-import { getClinicData, getScheduledStaffForDay } from '@/lib/data';
+import { getClinicData } from '@/lib/data';
+import { format } from 'date-fns';
 
 export async function submitMessage(message: string): Promise<string> {
   if (!message.trim()) {
@@ -11,10 +12,16 @@ export async function submitMessage(message: string): Promise<string> {
 
   try {
     const clinicData = await getClinicData();
-    // Pass in the current date to get staff scheduled for *today*.
-    const scheduledStaff = await getScheduledStaffForDay(new Date());
     const faqString = clinicData.faq.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
-    const staffString = scheduledStaff.map(s => s.name).join(', ');
+    
+    // Create a combined object of staff and their schedules
+    const staffAndSchedule = {
+      staff: clinicData.staff,
+      schedule: clinicData.weeklySchedule
+    };
+    
+    // Get the name of the current day, e.g., "Thursday"
+    const today = format(new Date(), 'EEEE');
 
     const aiResponse = await answerClinicQuestions({
       question: message,
@@ -22,7 +29,8 @@ export async function submitMessage(message: string): Promise<string> {
       clinicAddress: clinicData.address,
       clinicHours: clinicData.hours,
       clinicPhone: clinicData.phone,
-      availableStaff: staffString || "No one is scheduled to work today.",
+      staffAndSchedule: JSON.stringify(staffAndSchedule, null, 2),
+      today: today,
       faq: faqString,
     });
 
