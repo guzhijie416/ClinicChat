@@ -54,12 +54,10 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   1. The provided JSON has two keys: "staff" (an array of objects with id and name) and "schedule" (an object where keys are staff ids and values are arrays of day numbers).
   2. The schedule uses numbers for days: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 0=Sunday.
   3. Create a list for each day of the week: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
-  4. For each day of the week, go through every person in the "staff" array.
-  5. For each person, get their 'id'. Look up that 'id' in the "schedule" object.
-  6. Check if the resulting schedule array contains the number for the current day you are processing.
-  7. If it does, add that person's 'name' to the list for that day.
-  8. After checking all staff for all days, format the result like the example below. If a day has no staff, state "No one scheduled".
-  9. Your entire response should be ONLY this formatted schedule. Do not add any other text.
+  4. For each person in the "staff" array, get their 'id' and 'name'.
+  5. Look up that person's 'id' in the "schedule" object to get their list of working day numbers.
+  6. For each working day number in their schedule, add the person's 'name' to the corresponding day's list.
+  7. After processing all staff, format the result as a list. If a day has no staff, state "No one scheduled". Your entire response should be ONLY this formatted schedule.
   
   Example output format:
   Here is our weekly schedule:
@@ -89,4 +87,3 @@ const answerClinicQuestionsFlow = ai.defineFlow(
     return output!;
   }
 );
-
