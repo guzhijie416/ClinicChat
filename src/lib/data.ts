@@ -95,14 +95,12 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
 
   // 1. Filter by weekly schedule
   const dayOfWeek = getDay(aDate); // Sunday is 0, Monday is 1, etc.
-  const scheduledStaffIds = new Set(
-    Object.keys(data.weeklySchedule || {}).filter(staffId => 
-      (data.weeklySchedule[staffId] || []).includes(dayOfWeek)
-    )
-  );
-
-  const staffOnDay = data.staff.filter(staff => scheduledStaffIds.has(staff.id));
   
+  const scheduledStaff = data.staff.filter(staffMember => {
+    const schedule = data.weeklySchedule?.[staffMember.id];
+    return schedule?.includes(dayOfWeek);
+  });
+
   // 2. Filter by current one-off sessions (busy staff)
   const busyStaffIds = new Set(
     (data.sessions || [])
@@ -127,7 +125,7 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
       .map(session => session.staffId)
   );
 
-  return staffOnDay.filter(staff => !busyStaffIds.has(staff.id));
+  return scheduledStaff.filter(staff => !busyStaffIds.has(staff.id));
 };
 
 export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booking> => {
