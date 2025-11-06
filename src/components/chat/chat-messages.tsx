@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Sparkles, CalendarCheck } from 'lucide-react';
+import { User, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 
@@ -23,28 +23,24 @@ const TypingIndicator = () => (
 );
 
 const MessageContent = ({ content }: { content: string }) => {
-  const actionRegex = /\[ACTION:BOOK_NOW\]/g;
+  const linkRegex = /(\/book)/g;
   const boldRegex = /(\*\*.*?\*\*)/g;
-
-  // Combine regexes for splitting
-  const combinedRegex = new RegExp(`${actionRegex.source}|${boldRegex.source}`, 'g');
+  
+  const combinedRegex = new RegExp(`${linkRegex.source}|${boldRegex.source}`, 'g');
   const parts = content.split(combinedRegex).filter(Boolean);
 
   return (
     <div className="text-sm space-y-2">
       {parts.map((part, index) => {
-        if (part === '[ACTION:BOOK_NOW]') {
+        if (part === '/book') {
           return (
-            <Button key={index} asChild className="mt-2">
-              <Link href="/book">
-                <CalendarCheck className="mr-2 h-4 w-4" />
-                Book a Session
-              </Link>
-            </Button>
+            <Link key={index} href="/book" className="text-primary underline">
+              booking page
+            </Link>
           );
         }
         if (part.startsWith('**') && part.endsWith('**')) {
-          return <p key={index}><strong>{part.slice(2, -2)}</strong></p>;
+          return <strong key={index}>{part.slice(2, -2)}</strong>;
         }
         // To handle multiline text correctly, we split the part by newlines
         return part.split('\n').map((line, lineIndex) => <p key={`${index}-${lineIndex}`}>{line}</p>);
@@ -88,7 +84,7 @@ export default function ChatMessages({ messages, isLoading }: ChatMessagesProps)
                 : "bg-muted text-muted-foreground rounded-bl-none"
             )}
           >
-            <MessageContent content={message.content} />
+             <MessageContent content={message.content} />
           </div>
           {message.role === 'user' && (
             <Avatar className="h-8 w-8">

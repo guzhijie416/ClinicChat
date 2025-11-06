@@ -25,7 +25,6 @@ export type AnswerClinicQuestionsInput = z.infer<typeof AnswerClinicQuestionsInp
 
 const AnswerClinicQuestionsOutputSchema = z.object({
   answer: z.string().describe('The answer to the question about the clinic.'),
-  action: z.enum(['BOOK_NOW', 'NONE']).optional().describe("Set to 'BOOK_NOW' if the user wants to book an appointment."),
 });
 export type AnswerClinicQuestionsOutput = z.infer<typeof AnswerClinicQuestionsOutputSchema>;
 
@@ -39,9 +38,7 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   output: {schema: AnswerClinicQuestionsOutputSchema},
   prompt: `You are a helpful AI assistant for a clinic. Your task is to answer user questions based on the provided information.
 
-  1.  **Booking Intent:** First, determine if the user wants to book an appointment, schedule a session, or something similar.
-      -   If they do, set the 'action' field in your output to 'BOOK_NOW'.
-      -   Set the 'answer' field to "You can book a session now."
+  1.  **Booking Intent:** If the user wants to book an appointment, schedule a session, or something similar, respond with 'You can book a session by going to our booking page: /book'.
 
   2.  **Schedule Intent:** If the user is asking "who is working", "who is available", or about schedules:
       -   Parse the STAFF & SCHEDULE JSON. It has a 'staff' array and a 'schedule' object. The 'schedule' object keys are staff IDs, and values are arrays of day numbers (0-6, where 0 is Sunday).
@@ -50,11 +47,9 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
       -   Iterate through each staff member. For their 'id', find their working days in the 'schedule' object.
       -   For each working day, add the staff member's 'name' to that day's list.
       -   Format the output starting with "Here is our weekly schedule:". For each day, list the day (in bold using **Day**) and the names of staff working. If no one is working, state that.
-      -   Set the 'action' field to 'NONE'.
-
+      
   3.  **General Questions:** For all other questions, use the provided context and FAQ to give a helpful answer.
-      -   Set the 'action' field to 'NONE'.
-
+      
   CONTEXT:
   - Clinic: {{{clinicName}}} at {{{clinicAddress}}}
   - Phone: {{{clinicPhone}}}
