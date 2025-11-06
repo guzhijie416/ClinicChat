@@ -72,7 +72,7 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   - **Saturday**: K.K. 
   - **Sunday**: K.K.
 
-  If the user asks about booking an appointment, wanting to schedule a session, or something similar, your answer should be: "You can book a session by going to our booking page: /book"
+  If the user asks about booking an appointment, wanting to schedule a session, or something similar, your answer should be: "You can book a session now. [ACTION:BOOK_NOW]"
 
   For all other questions, use the provided context and FAQ to answer the user's question.
 

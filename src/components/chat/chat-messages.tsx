@@ -4,9 +4,10 @@
 import { useEffect, useRef } from 'react';
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Sparkles } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { User, Sparkles, CalendarCheck } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '../ui/button';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -22,29 +23,33 @@ const TypingIndicator = () => (
 );
 
 const MessageContent = ({ content }: { content: string }) => {
-  const linkRegex = /(\/book)/g;
+  const actionRegex = /\[ACTION:BOOK_NOW\]/g;
   const boldRegex = /(\*\*.*?\*\*)/g;
 
   // Combine regexes for splitting
-  const combinedRegex = new RegExp(`${linkRegex.source}|${boldRegex.source}`, 'g');
+  const combinedRegex = new RegExp(`${actionRegex.source}|${boldRegex.source}`, 'g');
   const parts = content.split(combinedRegex).filter(Boolean);
 
   return (
-    <p className="text-sm">
+    <div className="text-sm space-y-2">
       {parts.map((part, index) => {
-        if (part === '/book') {
+        if (part === '[ACTION:BOOK_NOW]') {
           return (
-            <Link key={index} href="/book" className="text-primary underline hover:text-primary/80">
-              {part}
-            </Link>
+            <Button key={index} asChild className="mt-2">
+              <Link href="/book">
+                <CalendarCheck className="mr-2 h-4 w-4" />
+                Book a Session
+              </Link>
+            </Button>
           );
         }
         if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={index}>{part.slice(2, -2)}</strong>;
+          return <p key={index}><strong>{part.slice(2, -2)}</strong></p>;
         }
-        return part;
+        // To handle multiline text correctly, we split the part by newlines
+        return part.split('\n').map((line, lineIndex) => <p key={`${index}-${lineIndex}`}>{line}</p>);
       })}
-    </p>
+    </div>
   );
 };
 
@@ -60,7 +65,7 @@ export default function ChatMessages({ messages, isLoading }: ChatMessagesProps)
 
   return (
     <div ref={scrollAreaRef} className="flex-grow overflow-y-auto p-4 space-y-6">
-      {messages.map((message, index) => (
+      {messages.map((message) => (
         <div
           key={message.id}
           className={cn(
@@ -77,7 +82,7 @@ export default function ChatMessages({ messages, isLoading }: ChatMessagesProps)
           )}
           <div
             className={cn(
-              "max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 rounded-2xl whitespace-pre-wrap",
+              "max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 rounded-2xl",
               message.role === 'user'
                 ? "bg-primary text-primary-foreground rounded-br-none"
                 : "bg-muted text-muted-foreground rounded-bl-none"
