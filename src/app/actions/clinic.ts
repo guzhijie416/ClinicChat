@@ -45,16 +45,20 @@ export async function saveClinicData(formData: unknown) {
   }
 
   try {
-    // Make sure we have a schedule for every staff member
     const data = validatedFields.data;
-    const schedule = data.weeklySchedule || {};
+    
+    // Create a new, clean schedule object based only on the staff currently in the form.
+    const newWeeklySchedule: { [key: string]: number[] } = {};
     for (const staffMember of data.staff) {
-      if (!schedule[staffMember.id]) {
-        schedule[staffMember.id] = [];
-      }
+      // If the staff member has a schedule in the form data, use it. Otherwise, assign an empty array.
+      newWeeklySchedule[staffMember.id] = data.weeklySchedule[staffMember.id] || [];
     }
     
-    await updateClinicData({...data, weeklySchedule: schedule});
+    // Replace the old weeklySchedule with the new, clean one.
+    const dataToSave = { ...data, weeklySchedule: newWeeklySchedule };
+
+    await updateClinicData(dataToSave);
+    
     revalidatePath('/admin');
     revalidatePath('/chat');
     revalidatePath('/book');
