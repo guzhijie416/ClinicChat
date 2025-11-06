@@ -19,9 +19,6 @@ export async function submitMessage(message: string): Promise<string> {
       staff: clinicData.staff,
       schedule: clinicData.weeklySchedule
     };
-    
-    // Get the number of the current day, e.g., 4 for Thursday
-    const todayDayNumber = getDay(new Date());
 
     const aiResponse = await answerClinicQuestions({
       question: message,
@@ -30,7 +27,6 @@ export async function submitMessage(message: string): Promise<string> {
       clinicHours: clinicData.hours,
       clinicPhone: clinicData.phone,
       staffAndSchedule: JSON.stringify(staffAndSchedule, null, 2),
-      todayDayNumber: todayDayNumber,
       faq: faqString,
     });
 

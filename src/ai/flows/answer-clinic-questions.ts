@@ -18,7 +18,6 @@ const AnswerClinicQuestionsInputSchema = z.object({
   clinicHours: z.string().describe('The hours of operation of the clinic.'),
   clinicPhone: z.string().describe('The phone number of the clinic.'),
   staffAndSchedule: z.string().describe('A JSON string representing all staff members and their weekly schedules. The schedule is a list of numbers where 0=Sunday, 1=Monday, ..., 6=Saturday.'),
-  todayDayNumber: z.number().describe('The number representing the current day of the week, where 0=Sunday, 1=Monday, ..., 6=Saturday.'),
   faq: z.string().describe('Frequently asked questions about the clinic.'),
 });
 export type AnswerClinicQuestionsInput = z.infer<typeof AnswerClinicQuestionsInputSchema>;
@@ -47,9 +46,8 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   STAFF & SCHEDULE:
   - The following JSON data contains all staff members and their weekly work schedule.
   - The schedule is an array of numbers representing days of the week: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday.
-  - Today's day number is {{{todayDayNumber}}}.
-  - When asked who is working today, you MUST use this number to check against the schedule data to determine the list of available staff.
   - Staff and Schedule Data: {{{staffAndSchedule}}}
+  - If the user asks "who is working today", "who is available", or asks about the schedule, you MUST respond by presenting the entire weekly schedule. Format it clearly, mapping each staff member to the days they work. For example: "Here is our weekly schedule:\n- Dr. Evelyn Reed: Monday, Tuesday, Wednesday\n- Marco Jimenez: Thursday, Friday".
 
   FAQ:
   {{{faq}}}
