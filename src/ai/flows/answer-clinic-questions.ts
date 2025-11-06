@@ -50,8 +50,26 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
   FAQ:
   {{{faq}}}
 
-  If the user's question is about "who is working", "who is available", "what is your schedule", or similar, your response MUST be only the raw, unmodified JSON string from the "STAFF & SCHEDULE JSON" context above. Do not add any other text.
-  
+  If the user's question is about "who is working", "who is available", "what is your schedule", or similar, you MUST follow these steps to construct the response:
+  1. Parse the STAFF & SCHEDULE JSON. It contains a 'staff' array and a 'schedule' object. The schedule object uses staff IDs as keys.
+  2. Create a schedule for each day of the week: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
+  3. You are given this mapping of day numbers to day names: 0: Sunday, 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday.
+  4. For each staff member in the 'staff' array, get their 'id' and 'name'.
+  5. Use the staff member's 'id' to find their schedule in the 'schedule' object. The schedule is an array of day numbers.
+  6. For each day number in that staff member's schedule, find the corresponding day name from your mapping. Add the staff member's 'name' to that day's schedule list.
+  7. After checking all staff members, format the final output as a simple list, with the day of the week followed by the names of the staff working on that day. If no one is scheduled for a day, state that clearly (e.g., "No one scheduled").
+  8. Your final response should start with "Here is our weekly schedule:" and be followed by the list you generated. Do not output the raw JSON.
+
+  Example Output:
+  Here is our weekly schedule:
+  - Monday: Dr. Evelyn Reed, Marco Jimenez
+  - Tuesday: Dr. Evelyn Reed, Marco Jimenez
+  - Wednesday: Dr. Evelyn Reed, Marco Jimenez
+  - Thursday: Dr. Evelyn Reed, Marco Jimenez
+  - Friday: Dr. Evelyn Reed, Marco Jimenez
+  - Saturday: Aisha Chen
+  - Sunday: Aisha Chen
+
   If the user asks about booking an appointment, wanting to schedule a session, or something similar, your answer should be: "You can book a session by going to our booking page: /book"
 
   For all other questions, use the provided context and FAQ to answer the user's question.
