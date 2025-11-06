@@ -2,8 +2,7 @@
 "use server";
 
 import { answerClinicQuestions } from '@/ai/flows/answer-clinic-questions';
-import { getClinicData } from '@/lib/data';
-import { getScheduledStaffForClient } from '@/app/actions/data';
+import { getClinicData, getScheduledStaffForDay } from '@/lib/data';
 
 export async function submitMessage(message: string): Promise<string> {
   if (!message.trim()) {
@@ -13,7 +12,7 @@ export async function submitMessage(message: string): Promise<string> {
   try {
     const clinicData = await getClinicData();
     // Pass in the current date to get staff scheduled for *today*.
-    const scheduledStaff = await getScheduledStaffForClient(new Date());
+    const scheduledStaff = await getScheduledStaffForDay(new Date());
     const faqString = clinicData.faq.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
     const staffString = scheduledStaff.map(s => s.name).join(', ');
 
