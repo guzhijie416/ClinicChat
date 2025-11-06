@@ -1,6 +1,6 @@
 
 import type { ClinicData, Booking, Staff, Session, WeeklySchedule } from '@/types';
-import { addMinutes, isAfter, getDay } from 'date-fns';
+import { addMinutes, isAfter, getDay, parseISO } from 'date-fns';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -90,42 +90,41 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
 };
 
 export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
-  const data = await getClinicData();
+  const { staff, weeklySchedule, sessions, massageServices } = await getClinicData();
   const aDate = forDate ? new Date(forDate) : new Date();
+  const dayOfWeek = getDay(aDate);
 
-  // 1. Filter by weekly schedule
-  const dayOfWeek = getDay(aDate); // Sunday is 0, Monday is 1, etc.
-  
-  const scheduledStaff = data.staff.filter(staffMember => {
-    const schedule = data.weeklySchedule?.[staffMember.id];
+  // 1. Filter staff who are scheduled to work on the given day
+  const scheduledStaff = staff.filter(staffMember => {
+    const schedule = weeklySchedule?.[staffMember.id];
+    // A staff member is scheduled if their schedule includes the current day of the week.
     return schedule?.includes(dayOfWeek);
   });
 
-  // 2. Filter by current one-off sessions (busy staff)
+  // 2. Filter out staff who are busy with one-off sessions
   const busyStaffIds = new Set(
-    (data.sessions || [])
+    (sessions || [])
       .filter(session => {
-        const service = data.massageServices.find(s => s.id === session.massageServiceId);
+        const service = massageServices.find(s => s.id === session.massageServiceId);
         if (!service || !session.startTime) return false;
 
         try {
-          const startTime = new Date(session.startTime);
-          // Only consider sessions on the same day.
-          if (startTime.toDateString() !== aDate.toDateString()) {
-            return false;
-          }
+          // Use parseISO to correctly handle the datetime-local string
+          const startTime = parseISO(session.startTime);
+          
           const endTime = addMinutes(startTime, service.duration);
           
           // A staff member is busy if the selected time `aDate` is between a session's start and end time.
-          return isAfter(aDate, startTime) && isAfter(endTime, aDate);
+          return aDate >= startTime && aDate < endTime;
         } catch(e){
+          console.error(`Invalid date format for session ${session.id}: ${session.startTime}`);
           return false;
         }
       })
       .map(session => session.staffId)
   );
 
-  return scheduledStaff.filter(staff => !busyStaffIds.has(staff.id));
+  return scheduledStaff.filter(staffMember => !busyStaffIds.has(staffMember.id));
 };
 
 export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booking> => {
@@ -162,3 +161,5 @@ export const getAllBookings = async (): Promise<Booking[]> => {
   // Return bookings sorted by date, most recent first
   return (db.bookings || []).sort((a, b) => new Date(b.bookingTime).getTime() - new Date(a.bookingTime).getTime());
 };
+
+    

@@ -223,32 +223,27 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
                       <FormLabel>Working Days</FormLabel>
                       <div className="flex flex-wrap gap-4">
                         {daysOfWeek.map((day) => (
-                          <FormField
+                           <Controller
                             key={day.id}
                             control={form.control}
                             name={`weeklySchedule.${field.id}`}
-                            render={({ field: controllerField }) => {
-                              return (
-                                <FormItem key={day.id} className="flex flex-row items-start space-x-2 space-y-0">
+                            render={({ field: { onChange, value } }) => (
+                                <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                                   <FormControl>
                                     <Checkbox
-                                      checked={controllerField.value?.includes(day.id)}
+                                      checked={value?.includes(day.id)}
                                       onCheckedChange={(checked) => {
-                                        const currentValue = controllerField.value || [];
-                                        return checked
-                                          ? controllerField.onChange([...currentValue, day.id])
-                                          : controllerField.onChange(
-                                              currentValue.filter(
-                                                (value) => value !== day.id
-                                              )
-                                            );
+                                        const currentSchedule = value || [];
+                                        const newSchedule = checked
+                                          ? [...currentSchedule, day.id]
+                                          : currentSchedule.filter((d) => d !== day.id);
+                                        onChange(newSchedule);
                                       }}
                                     />
                                   </FormControl>
                                   <FormLabel className="font-normal">{day.label}</FormLabel>
                                 </FormItem>
-                              );
-                            }}
+                              )}
                           />
                         ))}
                       </div>
@@ -433,3 +428,5 @@ export function ClinicForm({ defaultValues }: ClinicFormProps) {
     </Form>
   );
 }
+
+    
