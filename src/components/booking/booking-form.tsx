@@ -59,6 +59,7 @@ export function BookingForm({ clinicData }: BookingFormProps) {
   });
 
   const selectedBookingTime = form.watch('bookingTime');
+  const selectedStaffId = form.watch('staffId');
 
   useEffect(() => {
     async function fetchStaff() {
@@ -67,6 +68,8 @@ export function BookingForm({ clinicData }: BookingFormProps) {
         return;
       }
       setIsFetchingStaff(true);
+      // Reset previously selected staff if they are no longer in the list
+      form.setValue('staffId', '');
       try {
         const staff = await getAvailableStaffForClient(new Date(selectedBookingTime));
         setAvailableStaff(staff);
@@ -80,7 +83,7 @@ export function BookingForm({ clinicData }: BookingFormProps) {
 
     // When the booking time changes, refetch the available staff
     fetchStaff();
-  }, [selectedBookingTime]);
+  }, [selectedBookingTime, form]);
 
 
   const onSubmit = (data: BookingFormValues) => {
@@ -99,8 +102,9 @@ export function BookingForm({ clinicData }: BookingFormProps) {
   };
 
   const isButtonDisabled = useMemo(() => {
-    return isPending || isFetchingStaff || !selectedBookingTime || availableStaff.length === 0
-  }, [isPending, isFetchingStaff, selectedBookingTime, availableStaff.length]);
+    // Also disable if there's no staff selected.
+    return isPending || isFetchingStaff || !selectedBookingTime || availableStaff.length === 0 || !selectedStaffId;
+  }, [isPending, isFetchingStaff, selectedBookingTime, availableStaff.length, selectedStaffId]);
 
 
   return (
@@ -171,7 +175,7 @@ export function BookingForm({ clinicData }: BookingFormProps) {
                   <FormLabel>Therapist</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                     disabled={!selectedBookingTime || isFetchingStaff}
                   >
                     <FormControl>

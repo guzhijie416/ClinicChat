@@ -66,6 +66,12 @@
         "staffId": "3",
         "massageServiceId": "svc1",
         "startTime": "2025-11-05T16:10"
+      },
+      {
+        "id": "session-1762438665091-110",
+        "staffId": "id-1762313549627-60",
+        "massageServiceId": "svc1",
+        "startTime": "2025-11-06T10:20"
       }
     ],
     "faq": [
@@ -163,6 +169,13 @@
       "massageServiceId": "svc1",
       "staffId": "3",
       "bookingTime": "2025-11-05T16:10"
+    },
+    {
+      "id": "booking-1762438665091-984",
+      "name": "Jay",
+      "massageServiceId": "svc1",
+      "staffId": "id-1762313549627-60",
+      "bookingTime": "2025-11-06T10:20"
     }
   ]
 }
