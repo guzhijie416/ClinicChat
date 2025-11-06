@@ -97,20 +97,25 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
 
 export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> => {
     const db = await readDb();
-    const dayOfWeek = getDay(forDate);
+    const dayOfWeek = getDay(forDate); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
 
-    const staff = db.clinicData.staff;
-    const weeklySchedule = db.clinicData.weeklySchedule;
-
-    if (!weeklySchedule || !staff || !Array.isArray(staff)) {
+    if (!db.clinicData || !db.clinicData.staff || !db.clinicData.weeklySchedule) {
         console.error("Staff list or weekly schedule is missing or invalid in db.json");
         return [];
     }
     
+    const staff = db.clinicData.staff;
+    const weeklySchedule = db.clinicData.weeklySchedule;
+
     const scheduledStaff = staff.filter(staffMember => {
         const staffSchedule = weeklySchedule[staffMember.id];
-        // Check if the staff member has a schedule and if that schedule includes the current day
-        return Array.isArray(staffSchedule) && staffSchedule.includes(dayOfWeek);
+        if (!Array.isArray(staffSchedule)) {
+            return false;
+        }
+        // The values from JSON might be strings or numbers, so we compare loosely
+        // or ensure types are consistent. `includes` does a strict comparison.
+        // Let's ensure we are comparing the same types.
+        return staffSchedule.map(String).includes(String(dayOfWeek));
     });
 
     return scheduledStaff;
