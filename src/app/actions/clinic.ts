@@ -49,11 +49,22 @@ export async function saveClinicData(formData: unknown) {
     
     // Create a new, clean schedule object based only on the staff currently in the form.
     const newWeeklySchedule: { [key: string]: number[] } = {};
-    for (const staffMember of data.staff) {
-      // If the staff member has a schedule in the form data, use it. Otherwise, assign an empty array.
-      newWeeklySchedule[staffMember.id] = data.weeklySchedule[staffMember.id] || [];
+    const presentStaffIds = new Set(data.staff.map(s => s.id));
+
+    for (const staffId in data.weeklySchedule) {
+        // Only keep schedule data for staff who are still present in the form
+        if (presentStaffIds.has(staffId)) {
+            newWeeklySchedule[staffId] = data.weeklySchedule[staffId];
+        }
     }
     
+    // Ensure every staff member has an entry in the schedule, even if empty.
+    for (const staffMember of data.staff) {
+        if (!newWeeklySchedule[staffMember.id]) {
+            newWeeklySchedule[staffMember.id] = [];
+        }
+    }
+
     // Replace the old weeklySchedule with the new, clean one.
     const dataToSave = { ...data, weeklySchedule: newWeeklySchedule };
 
