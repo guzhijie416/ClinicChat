@@ -1,3 +1,4 @@
+
 "use server";
 
 import { answerClinicQuestions } from '@/ai/flows/answer-clinic-questions';
@@ -10,7 +11,8 @@ export async function submitMessage(message: string): Promise<string> {
 
   try {
     const clinicData = await getClinicDataForClient();
-    const availableStaff = await getAvailableStaffForClient();
+    // Pass `new Date()` to get staff available today specifically
+    const availableStaff = await getAvailableStaffForClient(new Date());
     const faqString = clinicData.faq.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
     const staffString = availableStaff.map(s => s.name).join(', ');
 
@@ -20,7 +22,7 @@ export async function submitMessage(message: string): Promise<string> {
       clinicAddress: clinicData.address,
       clinicHours: clinicData.hours,
       clinicPhone: clinicData.phone,
-      availableStaff: staffString,
+      availableStaff: staffString || "No one is scheduled to work today.",
       faq: faqString,
     });
 

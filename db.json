@@ -84,7 +84,47 @@
         "question": "What is deep tissue massage?",
         "answer": "Deep tissue massage is a massage technique that's mainly used to treat musculoskeletal issues, such as strains and sports injuries. It involves applying sustained pressure using slow, deep strokes to target the inner layers of your muscles and connective tissues."
       }
-    ]
+    ],
+    "weeklySchedule": {
+      "1": [],
+      "2": [],
+      "3": [],
+      "e04749c4-a876-4642-a084-87ce5e63b89e": [
+        0,
+        2
+      ],
+      "ba3daf0c-75cc-42d3-ac56-f74e5137877e": [
+        4,
+        5,
+        6
+      ],
+      "f95fb31b-49ae-448f-9c3b-06302c1be3f1": [
+        1,
+        2,
+        3
+      ],
+      "630d06e7-ad81-4b04-98c8-5aa8b32a35c7": [
+        4,
+        5,
+        6
+      ],
+      "id-1762313549627-60": [],
+      "5820c451-bef5-4051-b295-5814e42cbb5c": [
+        0
+      ],
+      "3f524dc0-3c50-4314-95ad-00b516383b78": [
+        3
+      ],
+      "2f77b6e4-8ae3-49b7-9f2c-8d64d7a8678f": [
+        1,
+        2
+      ],
+      "8be067cf-d1a8-4743-a09e-19ebc9cddc70": [
+        4,
+        5,
+        6
+      ]
+    }
   },
   "bookings": [
     {
