@@ -96,10 +96,11 @@ export const updateClinicData = async (data: ClinicData): Promise<ClinicData> =>
 };
 
 export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> => {
-    const { staff, weeklySchedule } = await getClinicData();
+    const clinicData = await getClinicData();
+    const { staff, weeklySchedule } = clinicData;
     const dayOfWeek = getDay(forDate);
 
-    if (!weeklySchedule || !staff) {
+    if (!weeklySchedule || !staff || !Array.isArray(staff)) {
         return [];
     }
     
@@ -110,11 +111,12 @@ export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> =
 };
 
 export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
-  const { sessions, massageServices } = await getClinicData();
   const aDate = forDate ? new Date(forDate) : new Date();
-
+  
   // 1. Get staff scheduled to work on the given day
   const scheduledStaff = await getScheduledStaffForDay(aDate);
+  
+  const { sessions, massageServices } = await getClinicData();
 
   // 2. Filter out staff who are busy with one-off sessions
   const busyStaffIds = new Set(
