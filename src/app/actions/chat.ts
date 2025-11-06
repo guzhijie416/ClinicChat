@@ -12,7 +12,7 @@ export async function submitMessage(message: string): Promise<string> {
   try {
     const clinicData = await getClinicDataForClient();
     // Use the new function to get staff scheduled for today, ignoring current time.
-    const scheduledStaff = await getScheduledStaffForClient(new Date());
+    const scheduledStaff = await getScheduledStaffForClient();
     const faqString = clinicData.faq.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
     const staffString = scheduledStaff.map(s => s.name).join(', ');
 
