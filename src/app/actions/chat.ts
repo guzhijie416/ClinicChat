@@ -2,8 +2,7 @@
 "use server";
 
 import { answerClinicQuestions } from '@/ai/flows/answer-clinic-questions';
-import { getClinicData } from '@/lib/data';
-import { getScheduledStaffForDay } from '@/lib/data';
+import { getClinicData, getScheduledStaffForDay } from '@/lib/data';
 
 export async function submitMessage(message: string): Promise<string> {
   if (!message.trim()) {
