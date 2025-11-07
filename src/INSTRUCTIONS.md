@@ -12,9 +12,10 @@ This guide will walk you through adding the `GEMINI_API_KEY` to your project's s
 
 ## Step 2: Find the Secret Manager in Firebase
 
-The Firebase Console may have changed, so let's try a more direct route.
+This is the most important part. You need to select the correct Firebase project.
 
 1.  **Open the Firebase Console** and make sure you are in the correct project: **`studio-6760528828`**.
+    *   *You may see other projects like `clinicchat-jl431`. Please ignore them. The correct project for this app is `studio-6760528828`.*
 
 2.  In the left-hand navigation menu, find the **"Build"** section.
 
@@ -41,4 +42,4 @@ After you have successfully added the secret and saved the changes in the Fireba
 
 Click the **"Publish now"** button one last time. This makes the secret available to your live application.
 
-After this, the AI chat should work correctly. If you still see an error, it means the secret was not saved correctly. Please double-check the steps above, paying close attention to the backend ID and secret name.
+After this, the AI chat should work correctly. If you still see an error, it means the secret was not saved correctly. Please double-check the steps above, paying close attention to the project ID (`studio-6760528828`) and backend ID (`studio--studio-6760528828-de739`).
