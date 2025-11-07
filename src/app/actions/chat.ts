@@ -13,10 +13,11 @@ export async function submitMessage(message: string): Promise<string> {
     const clinicData = await getClinicData();
     const faqString = clinicData.faq.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
     
-    // Create a combined object of staff and their schedules
+    // Create a combined object of staff and their schedules, including one-off sessions.
     const staffAndSchedule = {
       staff: clinicData.staff,
-      schedule: clinicData.weeklySchedule
+      schedule: clinicData.weeklySchedule,
+      sessions: clinicData.sessions
     };
 
     const aiResponse = await answerClinicQuestions({
