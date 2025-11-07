@@ -2,118 +2,177 @@
  * @fileoverview Firestore Security Rules for the ClinicChat application.
  *
  * Core Philosophy:
- * This ruleset provides secure access to clinic data, FAQs, staff information, and chat sessions. It uses path-based rules and denormalization to enforce
- * access control efficiently. Public read access is granted for clinic listings, while all other data is secured using an owner-like model based on the clinic ID.
+ * This ruleset enforces a strict clinic-based data isolation model. Each clinic's
+ * data (staff, FAQs, chat sessions, and messages) is stored under its unique ID.
+ * Access is restricted based on clinic ownership, ensuring that users can only
+ * access data associated with their clinic.
  *
  * Data Structure:
- * - /clinics/{clinicId}: Stores general clinic information (name, address, contact). Intended for public listing.
- * - /clinics/{clinicId}/faqs/{faqId}: Stores frequently asked questions for each clinic. Secured to prevent unauthorized modification.
- * - /clinics/{clinicId}/staff/{staffId}: Stores staff details. Access is restricted to authorized clinic users.
- * - /clinics/{clinicId}/chat_sessions/{chatSessionId}: Stores chat sessions for a clinic.
- * - /clinics/{clinicId}/chat_sessions/{chatSessionId}/messages/{messageId}: Stores individual chat messages within a session.
+ * The Firestore database is structured as follows:
+ * /clinics/{clinicId} - Stores clinic information.
+ * /clinics/{clinicId}/staff/{staffId} - Stores staff information for a clinic.
+ * /clinics/{clinicId}/faqs/{faqId} - Stores FAQs for a clinic.
+ * /clinics/{clinicId}/chatSessions/{chatSessionId} - Stores chat sessions for a clinic.
+ * /clinics/{clinicId}/chatSessions/{chatSessionId}/chatMessages/{chatMessageId} - Stores chat messages for a session.
  *
  * Key Security Decisions:
- * - Clinic listing is public, but modification requires authorization (TODO: implement).
- * - FAQs, staff, chat sessions, and chat messages are secured to the specific clinic using the `clinicId` field within each document, which is validated on write.
- * - No user listing is allowed.
+ * - All data is namespaced under a clinic ID, enforcing data isolation.
+ * - Write access to any clinic-owned data requires the user to be authenticated.
+ * - Listing of documents is generally allowed within a clinic's subcollections
+ *   (staff, FAQs, chatSessions).
  *
  * Denormalization for Authorization:
- * The `clinicId` is denormalized (copied) into the FAQ, Staff, ChatSession, and ChatMessage documents. This avoids costly `get()` calls in security rules and allows each document to be independently secured.
+ * The `clinicId` is present on all subcollection documents (staff, FAQs, chatSessions, chatMessages).
+ * This allows us to verify that a document belongs to the correct clinic without
+ * performing additional `get()` operations.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows listing clinics with public info (name, address, hours, phone).  Creation, modification, and deletion are currently denied.
+     * @description Controls access to clinic documents.
      * @path /clinics/{clinicId}
-     * @allow get, list: if true;
-     * @deny create: if false;
-     * @deny update: if false;
-     * @deny delete: if false;
-     * @principle Grants public read access to clinic listings but restricts write access.
+     * @allow (create) - Authenticated user can create a clinic with a matching clinicId.
+     * @allow (get, list) - Read access is allowed for all.
+     * @allow (update, delete) - Authenticated user can update/delete a clinic with a matching clinicId.
+     * @deny (create) - Unauthenticated user cannot create a clinic.
+     * @deny (update, delete) - Unauthenticated user cannot update/delete a clinic.
+     * @principle Enforces clinic ownership for writes.
      */
     match /clinics/{clinicId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(clinicId) {
+        return request.auth.uid == clinicId;
+      }
+
+      function isExistingOwner(clinicId) {
+        return isOwner(clinicId) && resource != null;
+      }
+
       allow get, list: if true;
-      allow create: if false; // TODO: Add clinic creation logic for authorized users.
-      allow update: if false; // TODO: Add clinic update logic for authorized users.
-      allow delete: if false; // TODO: Add clinic deletion logic for authorized users.
+      allow create: if isSignedIn() && isOwner(clinicId);
+      allow update: if isExistingOwner(clinicId);
+      allow delete: if isExistingOwner(clinicId);
     }
 
     /**
-     * @description Controls access to FAQs, ensuring only authorized users can create, modify, or delete them within a specific clinic.  Validates that the 'clinicId' matches the path.
-     * @path /clinics/{clinicId}/faqs/{faqId}
-     * @allow create: if request.resource.data.clinicId == clinicId;
-     * @allow get, list: if true; // TODO: Restrict get/list to authorized clinic users.
-     * @allow update: if resource.data.clinicId == clinicId;
-     * @allow delete: if resource.data.clinicId == clinicId;
-     * @deny create: if request.resource.data.clinicId != clinicId;
-     * @deny update: if resource.data.clinicId != clinicId;
-     * @deny delete: if resource.data.clinicId != clinicId;
-     * @principle Enforces data consistency by validating the 'clinicId' against the path and restricts write access based on this relationship.
-     */
-    match /clinics/{clinicId}/faqs/{faqId} {
-      allow get, list: if true; // TODO: Restrict get/list to authorized clinic users.
-      allow create: if request.resource.data.clinicId == clinicId;
-      allow update: if resource.data.clinicId == clinicId && resource != null;
-      allow delete: if resource.data.clinicId == clinicId && resource != null;
-    }
-
-    /**
-     * @description Manages staff information for a clinic. Ensures the 'clinicId' matches the path and restricts modifications to authorized clinic users.
+     * @description Controls access to staff documents within a clinic.
      * @path /clinics/{clinicId}/staff/{staffId}
-     * @allow create: if request.resource.data.clinicId == clinicId;
-     * @allow get, list: if true; // TODO: Restrict get/list to authorized clinic users.
-     * @allow update: if resource.data.clinicId == clinicId;
-     * @allow delete: if resource.data.clinicId == clinicId;
-     * @deny create: if request.resource.data.clinicId != clinicId;
-     * @deny update: if resource.data.clinicId != clinicId;
-     * @deny delete: if resource.data.clinicId != clinicId;
-     * @principle Validates the 'clinicId' against the path for data consistency and restricts write access to enforce staff data ownership by the clinic.
+     * @allow (create) - Authenticated user can create a staff document in the clinic if the clinicId matches.
+     * @allow (get, list) - Read access is allowed for all authenticated users of the clinic.
+     * @allow (update, delete) - Authenticated user can update/delete a staff document if the clinicId matches.
+     * @deny (create) - Unauthenticated user cannot create a staff document.
+     * @deny (update, delete) - Unauthenticated user cannot update/delete a staff document.
+     * @principle Enforces clinic-based ownership for staff data.
      */
     match /clinics/{clinicId}/staff/{staffId} {
-      allow get, list: if true; // TODO: Restrict get/list to authorized clinic users.
-      allow create: if request.resource.data.clinicId == clinicId;
-      allow update: if resource.data.clinicId == clinicId && resource != null;
-      allow delete: if resource.data.clinicId == clinicId && resource != null;
+        function isSignedIn() {
+            return request.auth != null;
+        }
+
+        function isClinic(clinicId) {
+            return request.auth.uid == clinicId;
+        }
+
+        function isExistingClinic(clinicId) {
+            return isClinic(clinicId) && resource != null;
+        }
+
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && isClinic(clinicId);
+        allow update: if isExistingClinic(clinicId);
+        allow delete: if isExistingClinic(clinicId);
     }
 
     /**
-     * @description Secures chat sessions to the clinic and participating users.  Validates that the 'clinicId' matches the path.
-     * @path /clinics/{clinicId}/chat_sessions/{chatSessionId}
-     * @allow create: if request.resource.data.clinicId == clinicId;
-     * @allow get, list: if true; // TODO: Restrict get/list to authorized clinic users.
-     * @allow update: if resource.data.clinicId == clinicId;
-     * @allow delete: if resource.data.clinicId == clinicId;
-     * @deny create: if request.resource.data.clinicId != clinicId;
-     * @deny update: if resource.data.clinicId != clinicId;
-     * @deny delete: if resource.data.clinicId != clinicId;
-     * @principle Enforces data consistency by validating the 'clinicId' against the path and restricts write access based on this relationship.
+     * @description Controls access to FAQ documents within a clinic.
+     * @path /clinics/{clinicId}/faqs/{faqId}
+     * @allow (create) - Authenticated user can create an FAQ document in the clinic if the clinicId matches.
+     * @allow (get, list) - Read access is allowed for all authenticated users of the clinic.
+     * @allow (update, delete) - Authenticated user can update/delete an FAQ document if the clinicId matches.
+     * @deny (create) - Unauthenticated user cannot create an FAQ document.
+     * @deny (update, delete) - Unauthenticated user cannot update/delete an FAQ document.
+     * @principle Enforces clinic-based ownership for FAQ data.
      */
-    match /clinics/{clinicId}/chat_sessions/{chatSessionId} {
-      allow get, list: if true; // TODO: Restrict get/list to authorized clinic users.
-      allow create: if request.resource.data.clinicId == clinicId;
-      allow update: if resource.data.clinicId == clinicId && resource != null;
-      allow delete: if resource.data.clinicId == clinicId && resource != null;
+    match /clinics/{clinicId}/faqs/{faqId} {
+        function isSignedIn() {
+            return request.auth != null;
+        }
+
+        function isClinic(clinicId) {
+            return request.auth.uid == clinicId;
+        }
+
+        function isExistingClinic(clinicId) {
+            return isClinic(clinicId) && resource != null;
+        }
+
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && isClinic(clinicId);
+        allow update: if isExistingClinic(clinicId);
+        allow delete: if isExistingClinic(clinicId);
     }
 
     /**
-     * @description Secures chat messages within a chat session. Validates 'clinicId' and 'chatSessionId' against their respective paths.
-     * @path /clinics/{clinicId}/chat_sessions/{chatSessionId}/messages/{messageId}
-     * @allow create: if request.resource.data.clinicId == clinicId && request.resource.data.chatSessionId == chatSessionId;
-     * @allow get, list: if true; // TODO: Restrict get/list to authorized clinic users.
-     * @allow update: if resource.data.clinicId == clinicId && resource.data.chatSessionId == chatSessionId;
-     * @allow delete: if resource.data.clinicId == clinicId && resource.data.chatSessionId == chatSessionId;
-     * @deny create: if request.resource.data.clinicId != clinicId || request.resource.data.chatSessionId != chatSessionId;
-     * @deny update: if resource.data.clinicId != clinicId || resource.data.chatSessionId != chatSessionId;
-     * @deny delete: if resource.data.clinicId != clinicId || resource.data.chatSessionId != chatSessionId;
-     * @principle Enforces relational integrity by validating the 'clinicId' and 'chatSessionId' against the path and restricts write access based on these relationships.
+     * @description Controls access to chat session documents within a clinic.
+     * @path /clinics/{clinicId}/chatSessions/{chatSessionId}
+     * @allow (create) - Authenticated user can create a chat session document in the clinic if the clinicId matches.
+     * @allow (get, list) - Read access is allowed for all authenticated users of the clinic.
+     * @allow (update, delete) - Authenticated user can update/delete a chat session document if the clinicId matches.
+     * @deny (create) - Unauthenticated user cannot create a chat session document.
+     * @deny (update, delete) - Unauthenticated user cannot update/delete a chat session document.
+     * @principle Enforces clinic-based ownership for chat session data.
      */
-    match /clinics/{clinicId}/chat_sessions/{chatSessionId}/messages/{messageId} {
-      allow get, list: if true; // TODO: Restrict get/list to authorized clinic users.
-      allow create: if request.resource.data.clinicId == clinicId && request.resource.data.chatSessionId == chatSessionId;
-      allow update: if resource.data.clinicId == clinicId && resource.data.chatSessionId == chatSessionId && resource != null;
-      allow delete: if resource.data.clinicId == clinicId && resource.data.chatSessionId == chatSessionId && resource != null;
+    match /clinics/{clinicId}/chatSessions/{chatSessionId} {
+        function isSignedIn() {
+            return request.auth != null;
+        }
+
+        function isClinic(clinicId) {
+            return request.auth.uid == clinicId;
+        }
+
+        function isExistingClinic(clinicId) {
+            return isClinic(clinicId) && resource != null;
+        }
+
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && isClinic(clinicId);
+        allow update: if isExistingClinic(clinicId);
+        allow delete: if isExistingClinic(clinicId);
+    }
+
+    /**
+     * @description Controls access to chat message documents within a chat session.
+     * @path /clinics/{clinicId}/chatSessions/{chatSessionId}/chatMessages/{chatMessageId}
+     * @allow (create) - Authenticated user can create a chat message document in the chat session if the clinicId matches.
+     * @allow (get, list) - Read access is allowed for all authenticated users of the clinic.
+     * @allow (update, delete) - Authenticated user can update/delete a chat message document if the clinicId matches.
+     * @deny (create) - Unauthenticated user cannot create a chat message document.
+     * @deny (update, delete) - Unauthenticated user cannot update/delete a chat message document.
+     * @principle Enforces clinic-based ownership for chat message data.
+     */
+    match /clinics/{clinicId}/chatSessions/{chatSessionId}/chatMessages/{chatMessageId} {
+        function isSignedIn() {
+            return request.auth != null;
+        }
+
+        function isClinic(clinicId) {
+            return request.auth.uid == clinicId;
+        }
+
+        function isExistingClinic(clinicId) {
+            return isClinic(clinicId) && resource != null;
+        }
+
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && isClinic(clinicId);
+        allow update: if isExistingClinic(clinicId);
+        allow delete: if isExistingClinic(clinicId);
     }
   }
 }

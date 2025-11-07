@@ -4,11 +4,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Clinic",
       "type": "object",
-      "description": "Represents a clinic and its associated information.",
+      "description": "Represents a clinic that uses the application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the clinic."
+          "description": "Unique identifier for the clinic entity."
         },
         "name": {
           "type": "string",
@@ -22,23 +22,9 @@
           "type": "string",
           "description": "Operating hours of the clinic."
         },
-        "phone": {
+        "phoneNumber": {
           "type": "string",
           "description": "Phone number of the clinic."
-        },
-        "faqIds": {
-          "type": "array",
-          "description": "References to FAQs. (Relationship: Clinic 1:N FAQ)",
-          "items": {
-            "type": "string"
-          }
-        },
-        "staffIds": {
-          "type": "array",
-          "description": "References to Staff. (Relationship: Clinic 1:N Staff)",
-          "items": {
-            "type": "string"
-          }
         }
       },
       "required": [
@@ -46,37 +32,7 @@
         "name",
         "address",
         "hours",
-        "phone"
-      ]
-    },
-    "FAQ": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "FAQ",
-      "type": "object",
-      "description": "Represents a frequently asked question and its answer.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the FAQ."
-        },
-        "clinicId": {
-          "type": "string",
-          "description": "Reference to Clinic. (Relationship: Clinic 1:N FAQ)"
-        },
-        "question": {
-          "type": "string",
-          "description": "The frequently asked question."
-        },
-        "answer": {
-          "type": "string",
-          "description": "The answer to the frequently asked question."
-        }
-      },
-      "required": [
-        "id",
-        "clinicId",
-        "question",
-        "answer"
+        "phoneNumber"
       ]
     },
     "Staff": {
@@ -97,16 +53,46 @@
           "type": "string",
           "description": "Name of the staff member."
         },
-        "availability": {
-          "type": "string",
-          "description": "Availability schedule of the staff member."
+        "availableToday": {
+          "type": "boolean",
+          "description": "Indicates whether the staff member is available today."
         }
       },
       "required": [
         "id",
         "clinicId",
         "name",
-        "availability"
+        "availableToday"
+      ]
+    },
+    "FAQ": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FAQ",
+      "type": "object",
+      "description": "Represents a frequently asked question.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FAQ."
+        },
+        "clinicId": {
+          "type": "string",
+          "description": "Reference to Clinic. (Relationship: Clinic 1:N FAQ)"
+        },
+        "question": {
+          "type": "string",
+          "description": "The FAQ question."
+        },
+        "answer": {
+          "type": "string",
+          "description": "The answer to the FAQ question."
+        }
+      },
+      "required": [
+        "id",
+        "clinicId",
+        "question",
+        "answer"
       ]
     },
     "ChatSession": {
@@ -121,20 +107,16 @@
         },
         "clinicId": {
           "type": "string",
-          "description": "Reference to Clinic. (Relationship: ChatSession 1:1 Clinic)"
-        },
-        "clientId": {
-          "type": "string",
-          "description": "Identifier of the client initiating the chat. Can be null if the client is anonymous."
+          "description": "Reference to Clinic. (Relationship: Clinic 1:N ChatSession)"
         },
         "startTime": {
           "type": "string",
-          "description": "Timestamp indicating when the chat session started.",
+          "description": "The starting time of the chat session.",
           "format": "date-time"
         },
         "endTime": {
           "type": "string",
-          "description": "Timestamp indicating when the chat session ended. Can be null if the session is still active.",
+          "description": "The ending time of the chat session. It is null if the chat is active.",
           "format": "date-time"
         }
       },
@@ -148,7 +130,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ChatMessage",
       "type": "object",
-      "description": "Represents a single message within a chat session.",
+      "description": "Represents a message within a chat session.",
       "properties": {
         "id": {
           "type": "string",
@@ -158,25 +140,25 @@
           "type": "string",
           "description": "Reference to ChatSession. (Relationship: ChatSession 1:N ChatMessage)"
         },
-        "sender": {
+        "senderType": {
           "type": "string",
           "description": "Indicates who sent the message (e.g., 'client', 'ai')."
         },
-        "message": {
+        "messageText": {
           "type": "string",
-          "description": "The content of the chat message."
+          "description": "The content of the message."
         },
         "timestamp": {
           "type": "string",
-          "description": "Timestamp of when the message was sent.",
+          "description": "The time the message was sent.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
         "chatSessionId",
-        "sender",
-        "message",
+        "senderType",
+        "messageText",
         "timestamp"
       ]
     }
@@ -196,31 +178,11 @@
           "schema": {
             "$ref": "#/backend/entities/Clinic"
           },
-          "description": "Stores clinic information.  Supports listing clinics with public information.",
+          "description": "Stores clinic information.",
           "params": [
             {
               "name": "clinicId",
               "description": "Unique identifier for the clinic."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clinics/{clinicId}/faqs/{faqId}",
-        "definition": {
-          "entityName": "FAQ",
-          "schema": {
-            "$ref": "#/backend/entities/FAQ"
-          },
-          "description": "Stores FAQs related to a specific clinic. Includes denormalized 'clinicId' for authorization independence.",
-          "params": [
-            {
-              "name": "clinicId",
-              "description": "Unique identifier for the clinic."
-            },
-            {
-              "name": "faqId",
-              "description": "Unique identifier for the FAQ."
             }
           ]
         }
@@ -232,7 +194,7 @@
           "schema": {
             "$ref": "#/backend/entities/Staff"
           },
-          "description": "Stores staff information for a specific clinic. Includes denormalized 'clinicId' for authorization independence.",
+          "description": "Stores staff information for a specific clinic.",
           "params": [
             {
               "name": "clinicId",
@@ -246,13 +208,33 @@
         }
       },
       {
-        "path": "/clinics/{clinicId}/chat_sessions/{chatSessionId}",
+        "path": "/clinics/{clinicId}/faqs/{faqId}",
+        "definition": {
+          "entityName": "FAQ",
+          "schema": {
+            "$ref": "#/backend/entities/FAQ"
+          },
+          "description": "Stores FAQs for a specific clinic.",
+          "params": [
+            {
+              "name": "clinicId",
+              "description": "Unique identifier for the clinic."
+            },
+            {
+              "name": "faqId",
+              "description": "Unique identifier for the FAQ."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clinics/{clinicId}/chatSessions/{chatSessionId}",
         "definition": {
           "entityName": "ChatSession",
           "schema": {
             "$ref": "#/backend/entities/ChatSession"
           },
-          "description": "Stores chat sessions related to a clinic. Includes denormalized 'clinicId' for authorization independence.",
+          "description": "Stores chat sessions for a specific clinic.",
           "params": [
             {
               "name": "clinicId",
@@ -266,13 +248,13 @@
         }
       },
       {
-        "path": "/clinics/{clinicId}/chat_sessions/{chatSessionId}/messages/{messageId}",
+        "path": "/clinics/{clinicId}/chatSessions/{chatSessionId}/chatMessages/{chatMessageId}",
         "definition": {
           "entityName": "ChatMessage",
           "schema": {
             "$ref": "#/backend/entities/ChatMessage"
           },
-          "description": "Stores chat messages within a chat session. Includes denormalized 'clinicId' and 'chatSessionId' for authorization independence.",
+          "description": "Stores chat messages for a specific chat session.",
           "params": [
             {
               "name": "clinicId",
@@ -283,13 +265,13 @@
               "description": "Unique identifier for the chat session."
             },
             {
-              "name": "messageId",
+              "name": "chatMessageId",
               "description": "Unique identifier for the chat message."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the ClinicChat application, focusing on efficient data retrieval and secure access. Authorization Independence is achieved by storing the clinic ID directly within the FAQ, Staff, ChatSession, and ChatMessage documents, eliminating the need for hierarchical `get()` calls in security rules and enabling atomic operations. Structural Segregation is maintained by placing FAQs and Staff documents in subcollections of `/clinics/{clinicId}`, enabling simple path-based rules. ChatSessions and ChatMessages are similarly segregated under `/clinics/{clinicId}/chat_sessions/{chatSessionId}`. This approach ensures that all documents within each collection share the same security requirements, simplifying security rule management and improving overall security posture.\n\nThe structure supports the required QAPs (Rules are not Filters) via structural segregation and path-based rules.\n\n*   `/clinics/{clinicId}`: Allows listing clinics with public info (name, address, hours, phone). Security rules can restrict creation/modification to authorized users.\n*   `/clinics/{clinicId}/faqs/{faqId}`: Allows listing FAQs related to a specific clinic. Security rules ensure only authorized users can create/modify/delete FAQs.\n*   `/clinics/{clinicId}/staff/{staffId}`: Allows listing staff members associated with a clinic. Security rules control who can manage staff information.\n*   `/clinics/{clinicId}/chat_sessions/{chatSessionId}`: Secures chat sessions to the clinic and participating users.\n*   `/clinics/{clinicId}/chat_sessions/{chatSessionId}/messages/{messageId}`: Secures chat messages within a chat session."
+    "reasoning": "The Firestore structure is designed to support the ClinicChat application, focusing on secure and efficient data access for clinic information, staff details, FAQs, and chat sessions. The design emphasizes authorization independence and clear access patterns. Each clinic has its own collection for storing relevant data, enabling easy management and isolation.\n\n**Authorization Independence (CRITICAL):** All data related to a clinic is stored under its respective `clinicId`. This avoids cross-collection `get()` calls in security rules and ensures that authorization can be determined based on the path and data within each document.\n\n**Structural Segregation (Homogeneous Security Posture):** Data with different access needs is separated into different collections. This simplifies security rules. For example, all documents within `/clinics/{clinicId}/staff` will have similar access control requirements.\n\n**Access Modeling (Standardization and Consistency):** Path-based ownership is used for clinic-specific data. The structure `/clinics/{clinicId}/staff/{staffId}` clearly indicates that the staff document belongs to the specified clinic. This simplifies ownership-based security rules.\n\n**QAPs (Rules are not Filters):** The segregation strategy ensures efficient `list` operations. Listing staff, FAQs, or chat sessions for a specific clinic can be done securely by querying the relevant subcollection under that clinic's document."
   }
 }
