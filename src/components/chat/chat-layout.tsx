@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 
@@ -15,7 +15,7 @@ export default function ChatLayout({ children, clinicName }: ChatLayoutProps) {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <Button asChild variant="ghost" size="icon" className="md:hidden">
-              <Link href="/">
+              <Link href="/book">
                 <ChevronLeft className="h-6 w-6" />
               </Link>
             </Button>
@@ -23,9 +23,9 @@ export default function ChatLayout({ children, clinicName }: ChatLayoutProps) {
             <h1 className="text-xl font-bold font-headline text-foreground">{clinicName}</h1>
           </div>
           <Button asChild variant="outline">
-            <Link href="/">
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Home
+            <Link href="/book">
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Book a Session
             </Link>
           </Button>
         </div>

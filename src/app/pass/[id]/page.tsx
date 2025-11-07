@@ -3,7 +3,7 @@ import { getBooking, getClinicData } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Ticket, Calendar, Clock, User, Home, Sparkles, DollarSign, UserSquare } from 'lucide-react';
+import { Ticket, Calendar, Clock, User, MessageSquare, Sparkles, DollarSign, UserSquare } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -92,9 +92,9 @@ export default async function PassPage({ params }: { params: { id: string } }) {
          </Card>
          <div className="mt-6 text-center">
             <Button asChild variant="outline">
-                <Link href="/">
-                    <Home className="mr-2 h-4 w-4" />
-                    Back to Home
+                <Link href="/chat">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Back to Chat
                 </Link>
             </Button>
          </div>

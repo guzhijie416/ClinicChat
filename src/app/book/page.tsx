@@ -48,12 +48,6 @@ export default function BookPage() {
                 Back to Chat
               </Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link href="/">
-                <Home className="mr-2 h-4 w-4" />
-                Back to Home
-              </Link>
-            </Button>
           </div>
         </div>
         <BookingForm clinicData={clinicData} />
