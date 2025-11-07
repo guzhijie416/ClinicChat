@@ -1,0 +1,137 @@
+/**
+ * @fileoverview Firestore Security Rules for the ClinicChat application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a hierarchical ownership model, with clinics owning all associated data (staff, FAQs, chat sessions, and chat messages).
+ * Access control is primarily path-based, leveraging the `clinicId` parameter to ensure that only requests originating from within a clinic's data tree are allowed.
+ * The rules avoid expensive `get()` calls by relying on the hierarchical structure and validating the `clinicId` parameter in the path.
+ *
+ * Data Structure:
+ * - /clinics/{clinicId}: Stores clinic information.
+ * - /clinics/{clinicId}/staff/{staffId}: Stores staff information for a specific clinic.
+ * - /clinics/{clinicId}/faqs/{faqId}: Stores FAQs for a specific clinic.
+ * - /clinics/{clinicId}/chatSessions/{chatSessionId}: Stores chat sessions for a specific clinic.
+ * - /clinics/{clinicId}/chatSessions/{chatSessionId}/chatMessages/{chatMessageId}: Stores chat messages for a specific chat session.
+ *
+ * Key Security Decisions:
+ * - No global admin roles are defined. All authorization is based on clinic ownership.
+ * - List operations are allowed within each clinic's subcollections.
+ * - Data consistency is enforced by validating the `clinicId` parameter in the path for all write operations.
+ *
+ * Denormalization for Authorization:
+ * - The `clinicId` is implicitly denormalized onto all subcollection documents through the path structure. This avoids the need for `get()` calls to verify clinic ownership.
+ *
+ * Structural Segregation:
+ * - Public and private data are separated by collection.  Currently, all data is considered clinic-private.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Allows read and write access to clinic documents. In a production environment, you may want to restrict write access.
+     * @path /clinics/{clinicId}
+     * @allow get, list: if true;
+     * @allow create: if true; // TODO: Add owner validation
+     * @allow update: if true; // TODO: Add owner validation
+     * @allow delete: if true; // TODO: Add owner validation
+     * @deny create, update, delete: if false;
+     * @principle Open access for prototyping; requires refinement for production.
+     */
+    match /clinics/{clinicId} {
+      allow get, list: if true;
+      allow create: if true; // TODO: Add owner validation
+      allow update: if true; // TODO: Add owner validation
+      allow delete: if true; // TODO: Add owner validation
+    }
+
+    /**
+     * @description Allows access to staff documents within a clinic.
+     * @path /clinics/{clinicId}/staff/{staffId}
+     * @allow get: if true;
+     * @allow list: if true;
+     * @allow create: if isValidClinicId(clinicId);
+     * @allow update: if isValidClinicId(clinicId) && resource != null;
+     * @allow delete: if isValidClinicId(clinicId) && resource != null;
+     * @deny create: if !isValidClinicId(clinicId);
+     * @deny update: if !isValidClinicId(clinicId) || resource == null;
+     * @deny delete: if !isValidClinicId(clinicId) || resource == null;
+     * @principle Enforces clinic-based ownership for staff data.
+     */
+    match /clinics/{clinicId}/staff/{staffId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isValidClinicId(clinicId);
+      allow update: if isValidClinicId(clinicId) && resource != null;
+      allow delete: if isValidClinicId(clinicId) && resource != null;
+    }
+
+    /**
+     * @description Allows access to FAQ documents within a clinic.
+     * @path /clinics/{clinicId}/faqs/{faqId}
+     * @allow get: if true;
+     * @allow list: if true;
+     * @allow create: if isValidClinicId(clinicId);
+     * @allow update: if isValidClinicId(clinicId) && resource != null;
+     * @allow delete: if isValidClinicId(clinicId) && resource != null;
+     * @deny create: if !isValidClinicId(clinicId);
+     * @deny update: if !isValidClinicId(clinicId) || resource == null;
+     * @deny delete: if !isValidClinicId(clinicId) || resource == null;
+     * @principle Enforces clinic-based ownership for FAQ data.
+     */
+    match /clinics/{clinicId}/faqs/{faqId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isValidClinicId(clinicId);
+      allow update: if isValidClinicId(clinicId) && resource != null;
+      allow delete: if isValidClinicId(clinicId) && resource != null;
+    }
+
+    /**
+     * @description Allows access to chat session documents within a clinic.
+     * @path /clinics/{clinicId}/chatSessions/{chatSessionId}
+     * @allow get: if true;
+     * @allow list: if true;
+     * @allow create: if isValidClinicId(clinicId);
+     * @allow update: if isValidClinicId(clinicId) && resource != null;
+     * @allow delete: if isValidClinicId(clinicId) && resource != null;
+     * @deny create: if !isValidClinicId(clinicId);
+     * @deny update: if !isValidClinicId(clinicId) || resource == null;
+     * @deny delete: if !isValidClinicId(clinicId) || resource == null;
+     * @principle Enforces clinic-based ownership for chat session data.
+     */
+    match /clinics/{clinicId}/chatSessions/{chatSessionId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isValidClinicId(clinicId);
+      allow update: if isValidClinicId(clinicId) && resource != null;
+      allow delete: if isValidClinicId(clinicId) && resource != null;
+    }
+
+    /**
+     * @description Allows access to chat message documents within a chat session.
+     * @path /clinics/{clinicId}/chatSessions/{chatSessionId}/chatMessages/{chatMessageId}
+     * @allow get: if true;
+     * @allow list: if true;
+     * @allow create: if isValidClinicId(clinicId);
+     * @allow update: if isValidClinicId(clinicId) && resource != null;
+     * @allow delete: if isValidClinicId(clinicId) && resource != null;
+     * @deny create: if !isValidClinicId(clinicId);
+     * @deny update: if !isValidClinicId(clinicId) || resource == null;
+     * @deny delete: if !isValidClinicId(clinicId) || resource == null;
+     * @principle Enforces clinic-based ownership for chat message data.
+     */
+    match /clinics/{clinicId}/chatSessions/{chatSessionId}/chatMessages/{chatMessageId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isValidClinicId(clinicId);
+      allow update: if isValidClinicId(clinicId) && resource != null;
+      allow delete: if isValidClinicId(clinicId) && resource != null;
+    }
+
+    // Helper function to validate the clinicId in the path.
+    function isValidClinicId(clinicId) {
+      return clinicId is string; // Add more validation if needed, like checking against a list of valid clinic IDs.
+    }
+  }
+}

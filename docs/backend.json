@@ -1,0 +1,277 @@
+{
+  "entities": {
+    "Clinic": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Clinic",
+      "type": "object",
+      "description": "Represents a clinic and its associated information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the clinic."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the clinic."
+        },
+        "address": {
+          "type": "string",
+          "description": "Address of the clinic."
+        },
+        "hours": {
+          "type": "string",
+          "description": "Operating hours of the clinic."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the clinic."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "hours",
+        "phone"
+      ]
+    },
+    "Staff": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Staff",
+      "type": "object",
+      "description": "Represents a staff member at the clinic.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the staff member."
+        },
+        "clinicId": {
+          "type": "string",
+          "description": "Reference to Clinic. (Relationship: Clinic 1:N Staff)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the staff member."
+        },
+        "availability": {
+          "type": "string",
+          "description": "Availability schedule of the staff member."
+        }
+      },
+      "required": [
+        "id",
+        "clinicId",
+        "name",
+        "availability"
+      ]
+    },
+    "FAQ": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FAQ",
+      "type": "object",
+      "description": "Represents a frequently asked question and its answer.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FAQ."
+        },
+        "clinicId": {
+          "type": "string",
+          "description": "Reference to Clinic. (Relationship: Clinic 1:N FAQ)"
+        },
+        "question": {
+          "type": "string",
+          "description": "The question."
+        },
+        "answer": {
+          "type": "string",
+          "description": "The answer to the question."
+        }
+      },
+      "required": [
+        "id",
+        "clinicId",
+        "question",
+        "answer"
+      ]
+    },
+    "ChatSession": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatSession",
+      "type": "object",
+      "description": "Represents a chat session between a client and the AI.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the chat session."
+        },
+        "clinicId": {
+          "type": "string",
+          "description": "Reference to Clinic. (Relationship: Clinic 1:N ChatSession)"
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Start time of the chat session.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "End time of the chat session.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "clinicId",
+        "startTime"
+      ]
+    },
+    "ChatMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatMessage",
+      "type": "object",
+      "description": "Represents a message within a chat session.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the chat message."
+        },
+        "chatSessionId": {
+          "type": "string",
+          "description": "Reference to ChatSession. (Relationship: ChatSession 1:N ChatMessage)"
+        },
+        "sender": {
+          "type": "string",
+          "description": "Indicates who sent the message (e.g., 'client', 'ai')."
+        },
+        "message": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of the message.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "chatSessionId",
+        "sender",
+        "message",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/clinics/{clinicId}",
+        "definition": {
+          "entityName": "Clinic",
+          "schema": {
+            "$ref": "#/backend/entities/Clinic"
+          },
+          "description": "Stores clinic information.  Each clinic document is uniquely identified by clinicId.",
+          "params": [
+            {
+              "name": "clinicId",
+              "description": "Unique identifier for the clinic."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clinics/{clinicId}/staff/{staffId}",
+        "definition": {
+          "entityName": "Staff",
+          "schema": {
+            "$ref": "#/backend/entities/Staff"
+          },
+          "description": "Stores staff information for a specific clinic. Each staff document is uniquely identified by staffId.",
+          "params": [
+            {
+              "name": "clinicId",
+              "description": "Unique identifier for the clinic."
+            },
+            {
+              "name": "staffId",
+              "description": "Unique identifier for the staff member."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clinics/{clinicId}/faqs/{faqId}",
+        "definition": {
+          "entityName": "FAQ",
+          "schema": {
+            "$ref": "#/backend/entities/FAQ"
+          },
+          "description": "Stores FAQs for a specific clinic. Each FAQ document is uniquely identified by faqId.",
+          "params": [
+            {
+              "name": "clinicId",
+              "description": "Unique identifier for the clinic."
+            },
+            {
+              "name": "faqId",
+              "description": "Unique identifier for the FAQ."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clinics/{clinicId}/chatSessions/{chatSessionId}",
+        "definition": {
+          "entityName": "ChatSession",
+          "schema": {
+            "$ref": "#/backend/entities/ChatSession"
+          },
+          "description": "Stores chat sessions for a specific clinic. Each chat session document is uniquely identified by chatSessionId.",
+          "params": [
+            {
+              "name": "clinicId",
+              "description": "Unique identifier for the clinic."
+            },
+            {
+              "name": "chatSessionId",
+              "description": "Unique identifier for the chat session."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clinics/{clinicId}/chatSessions/{chatSessionId}/chatMessages/{chatMessageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Stores chat messages for a specific chat session. Each chat message document is uniquely identified by chatMessageId.",
+          "params": [
+            {
+              "name": "clinicId",
+              "description": "Unique identifier for the clinic."
+            },
+            {
+              "name": "chatSessionId",
+              "description": "Unique identifier for the chat session."
+            },
+            {
+              "name": "chatMessageId",
+              "description": "Unique identifier for the chat message."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the ClinicChat application, prioritizing authorization independence, clarity, and scalability. The structure leverages path-based ownership for private user data and membership maps for collaborative clinic data. All data is segregated into collections with homogeneous security postures.\n\nClinics are stored at the top level in a `clinics` collection.  All other data associated with a clinic is stored in subcollections to maintain a clear ownership structure (`/clinics/{clinicId}/staff`, `/clinics/{clinicId}/faqs`, `/clinics/{clinicId}/chatSessions`). ChatMessages are nested under ChatSessions.\n\n**Authorization Independence:**\n\n*   The system avoids `get()` calls in security rules. Clinic-specific data is accessed via path-based rules.\n\n**QAPs Support:**\n\n*   Secure list operations are achieved through structural segregation. Each collection has a clear security posture.\n*   Path-based ownership (`/clinics/{clinicId}/...`) provides secure access to clinic-owned data."
+  }
+}
