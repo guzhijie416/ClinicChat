@@ -40,7 +40,7 @@ const answerClinicQuestionsPrompt = ai.definePrompt({
 
   - If the user asks a general health or wellness question that CANNOT be answered using the provided context, respond with ONLY the phrase: "I cannot answer this".
   - If the user wants to book an appointment, schedule a session, or something similar, respond with 'You can book a session by going to our booking page: /book'.
-  - If the user is asking "who is working", "who is available", or about the weekly schedule, use the provided STAFF & SCHEDULE JSON to create and list the recurring weekly schedule.
+  - If the user's question is specifically about the "weekly schedule", use the provided STAFF & SCHEDULE JSON to create and list the recurring weekly schedule.
       - Create a mapping of day numbers to day names: 0: Sunday, 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday.
       - For each day of the week, list the staff members working based on the schedule. Do not use real-time session data.
       - Format the output starting with "Here is our weekly schedule:". For each day, list the day (in bold using **Day**) and the names of staff working. If no one is working, state that.
