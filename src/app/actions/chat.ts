@@ -13,10 +13,11 @@ export async function submitMessage(message: string): Promise<string> {
   const clinicData = await getClinicData();
   const faqString = clinicData.faq.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
   
+  // This object contains only the general staff and schedule information.
+  // This is what the user wants the AI to use for "weekly schedule" questions.
   const staffAndSchedule = {
     staff: clinicData.staff,
     schedule: clinicData.weeklySchedule,
-    sessions: clinicData.sessions
   };
 
   try {
@@ -41,7 +42,9 @@ export async function submitMessage(message: string): Promise<string> {
      if (error.message && error.message.includes('API key not valid')) {
        return "I'm sorry, my connection to the AI service isn't configured correctly. The API key is missing or invalid. The clinic owner needs to configure this in the Firebase environment.";
      }
-     // Fall through to the general wellness flow if there's another error.
+     // Fall through to the general wellness flow if there's another error,
+     // as it might be a general question that the first model can't handle.
+     console.warn("Clinic-specific AI flow failed, falling back to general model. Error:", error);
   }
   
   // If the clinic-specific flow couldn't answer, try the general one.
@@ -49,7 +52,7 @@ export async function submitMessage(message: string): Promise<string> {
     const generalResponse = await answerGeneralWellnessQuestion({ question: message });
     return generalResponse.answer;
   } catch (error: any) {
-    console.error("Error calling AI flow:", error);
+    console.error("Error calling general AI flow:", error);
     if (error.message && error.message.includes('API key not valid')) {
          return "I'm sorry, my connection to the AI service isn't configured correctly. The API key is missing or invalid. The clinic owner needs to configure this in the Firebase environment.";
     }
