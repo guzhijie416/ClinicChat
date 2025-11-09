@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { createBooking } from '@/lib/data';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
 const bookingSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
@@ -26,6 +27,7 @@ export async function submitBooking(data: unknown) {
   let newBooking;
   try {
     newBooking = await createBooking(validatedFields.data);
+    revalidatePath('/admin'); // This will refresh the data on the admin page
   } catch (error) {
     console.error(error);
     return {
