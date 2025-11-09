@@ -6,3 +6,4 @@ To get started, take a look at src/app/page.tsx.
 project is now configured for app hosdting.
 assign back to / from src
 Secret mgr Secret Accessor
+testing api-key
