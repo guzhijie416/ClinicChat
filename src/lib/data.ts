@@ -187,11 +187,15 @@ export const getAllBookings = async (): Promise<Booking[]> => {
   const today = startOfToday();
   
   const upcomingBookings = (db.bookings || []).filter(booking => {
-    // CRITICAL: Parse the booking time as an ISO string. `parseISO` is more reliable
-    // than `new Date()` for strings without explicit timezone info.
-    const bookingDate = parseISO(booking.bookingTime);
-    // Compare the booking date to the start of today.
-    return isAfter(bookingDate, today) || bookingDate.getTime() === today.getTime();
+    try {
+      const bookingDate = parseISO(booking.bookingTime);
+      // Compare the booking date to the start of today.
+      // It should be after or on the same day.
+      return isAfter(bookingDate, today) || bookingDate.getTime() >= today.getTime();
+    } catch (e) {
+      console.error(`Invalid booking time format for booking ${booking.id}: ${booking.bookingTime}`);
+      return false; // Exclude bookings with invalid date formats
+    }
   });
 
   // Return bookings sorted by date, soonest first
