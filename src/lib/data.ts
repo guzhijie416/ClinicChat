@@ -183,13 +183,17 @@ export const getBooking = async (id: string): Promise<Booking | undefined> => {
 
 export const getAllBookings = async (): Promise<Booking[]> => {
   const db = await readDb();
+  // Get the start of today based on the server's local time.
   const today = startOfToday();
   
   const upcomingBookings = (db.bookings || []).filter(booking => {
-    const bookingDate = new Date(booking.bookingTime);
-    return bookingDate >= today;
+    // CRITICAL: Parse the booking time as an ISO string. `parseISO` is more reliable
+    // than `new Date()` for strings without explicit timezone info.
+    const bookingDate = parseISO(booking.bookingTime);
+    // Compare the booking date to the start of today.
+    return isAfter(bookingDate, today) || bookingDate.getTime() === today.getTime();
   });
 
   // Return bookings sorted by date, soonest first
-  return upcomingBookings.sort((a, b) => new Date(a.bookingTime).getTime() - new Date(b.bookingTime).getTime());
+  return upcomingBookings.sort((a, b) => parseISO(a.bookingTime).getTime() - parseISO(b.bookingTime).getTime());
 };
