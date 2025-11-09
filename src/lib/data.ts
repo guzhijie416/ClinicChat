@@ -1,6 +1,6 @@
 
 import type { ClinicData, Booking, Staff, Session, WeeklySchedule } from '@/types';
-import { addMinutes, isAfter, getDay, parseISO } from 'date-fns';
+import { addMinutes, isAfter, getDay, parseISO, startOfToday } from 'date-fns';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -183,6 +183,13 @@ export const getBooking = async (id: string): Promise<Booking | undefined> => {
 
 export const getAllBookings = async (): Promise<Booking[]> => {
   const db = await readDb();
-  // Return bookings sorted by date, most recent first
-  return (db.bookings || []).sort((a, b) => new Date(b.bookingTime).getTime() - new Date(a.bookingTime).getTime());
+  const today = startOfToday();
+  
+  const upcomingBookings = (db.bookings || []).filter(booking => {
+    const bookingDate = new Date(booking.bookingTime);
+    return bookingDate >= today;
+  });
+
+  // Return bookings sorted by date, soonest first
+  return upcomingBookings.sort((a, b) => new Date(a.bookingTime).getTime() - new Date(b.bookingTime).getTime());
 };
