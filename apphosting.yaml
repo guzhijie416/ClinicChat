@@ -6,7 +6,7 @@ run:
   start: npm run start
   env:
     - variable: GEMINI_API_KEY
-      value: AIzaSyDP_41SccJtrQMbwjanaUhcQUGFCrrGXOk
+      secret: gemini-api-key
     - variable: NODE_ENV
       value: production
 stack:
