@@ -4,11 +4,11 @@ run:
     - npm install
     - npm run build
   start: npm run start
-  env:
-    - variable: GEMINI_API_KEY
-      secret: gemini-api-key
-    - variable: NODE_ENV
-      value: production
+env:
+  - variable: GEMINI_API_KEY
+    secret: gemini-api-key
+  - variable: NODE_ENV
+    value: production
 stack:
   name: nodejs
   version: "20"
