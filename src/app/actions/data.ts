@@ -1,11 +1,15 @@
 
 'use server';
 
-import { getClinicData, getAvailableStaff, getScheduledStaffForDay } from '@/lib/data';
-import type { ClinicData, Staff } from '@/types';
+import { getClinicData, getAvailableStaff, getScheduledStaffForDay, getAllBookings as getAllBookingsFromDb } from '@/lib/data';
+import type { ClinicData, Staff, Booking } from '@/types';
 
 export async function getClinicDataForClient(): Promise<ClinicData> {
     return await getClinicData();
+}
+
+export async function getAllBookingsForClient(): Promise<Booking[]> {
+    return await getAllBookingsFromDb();
 }
 
 export async function getAvailableStaffForClient(forDate?: Date): Promise<Staff[]> {

@@ -1,8 +1,10 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, QrCode, MessageSquare, Settings, CalendarCheck } from 'lucide-react';
 import { Logo } from '@/components/logo';
+import { BookingAlert } from '@/components/admin/booking-alert';
 
 export default function Home() {
   return (
@@ -21,6 +23,9 @@ export default function Home() {
       </header>
 
       <main className="flex-grow">
+        {/* Real-time booking alert will appear here */}
+        <BookingAlert />
+
         <section className="py-20 md:py-32">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-4xl md:text-6xl font-bold font-headline text-foreground tracking-tight">
