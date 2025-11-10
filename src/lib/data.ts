@@ -182,24 +182,16 @@ export const getBooking = async (id: string): Promise<Booking | undefined> => {
 
 export const getAllBookings = async (): Promise<Booking[]> => {
   const db = await readDb();
-  const today = startOfToday();
   
-  const upcomingBookings = (db.bookings || []).filter(booking => {
-    try {
-      // The bookingTime is a string like "2024-08-15T10:00"
-      // We only care about the date part for filtering.
-      const bookingDate = parseISO(booking.bookingTime);
-      return bookingDate >= today;
-    } catch (e) {
-      console.error(`Invalid booking time format for booking ${booking.id}: ${booking.bookingTime}`);
-      return false; 
-    }
-  });
-
-  // Sort the filtered bookings by their time.
-  return upcomingBookings.sort((a, b) => {
-      const timeA = parseISO(a.bookingTime).getTime();
-      const timeB = parseISO(b.bookingTime).getTime();
-      return timeA - timeB;
+  // Return all bookings, sorted by time, with no date filtering.
+  return (db.bookings || []).sort((a, b) => {
+      try {
+        const timeA = parseISO(a.bookingTime).getTime();
+        const timeB = parseISO(b.bookingTime).getTime();
+        return timeA - timeB;
+      } catch (e) {
+        // Handle cases where bookingTime might be invalid
+        return 0;
+      }
   });
 };
