@@ -158,6 +158,15 @@ export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booki
     ...booking
   };
   
+  // Ensure arrays exist before pushing
+  if (!db.bookings) {
+    db.bookings = [];
+  }
+  
+  if (!db.clinicData.sessions) {
+    db.clinicData.sessions = [];
+  }
+  
   const newSession: Session = {
     id: `session-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     staffId: newBooking.staffId,
@@ -165,15 +174,7 @@ export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booki
     startTime: newBooking.bookingTime,
   };
 
-  // Ensure arrays exist before pushing
-  if (!db.bookings) {
-    db.bookings = [];
-  }
   db.bookings.push(newBooking);
-  
-  if (!db.clinicData.sessions) {
-    db.clinicData.sessions = [];
-  }
   db.clinicData.sessions.push(newSession);
 
   await writeDb(db);
@@ -200,3 +201,23 @@ export const getAllBookings = async (): Promise<Booking[]> => {
       }
   });
 };
+
+export const deleteBooking = async (id: string): Promise<{success: boolean}> => {
+  const db = await readDb();
+  
+  const bookingToDelete = db.bookings.find(b => b.id === id);
+  if (!bookingToDelete) {
+    return { success: false };
+  }
+
+  // Filter out the booking
+  db.bookings = db.bookings.filter(b => b.id !== id);
+
+  // Filter out the corresponding session
+  db.clinicData.sessions = db.clinicData.sessions.filter(s => 
+    !(s.bookingTime === bookingToDelete.bookingTime && s.staffId === bookingToDelete.staffId && s.massageServiceId === bookingToDelete.massageServiceId)
+  );
+
+  await writeDb(db);
+  return { success: true };
+}

@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { createBooking } from '@/lib/data';
+import { createBooking, deleteBooking as deleteBookingFromDb } from '@/lib/data';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
@@ -44,5 +44,20 @@ export async function submitBooking(data: unknown) {
   // This will only be reached if the booking wasn't created for some reason
   return {
       errors: { _form: ['Could not create booking.'] },
+  }
+}
+
+export async function deleteBooking(bookingId: string) {
+  if (!bookingId) {
+    return { error: 'Booking ID is required.' };
+  }
+
+  try {
+    await deleteBookingFromDb(bookingId);
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { error: 'Failed to delete booking.' };
   }
 }

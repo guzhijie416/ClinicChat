@@ -16,6 +16,7 @@ export type Session = {
   staffId: string;
   massageServiceId: string;
   startTime: string; // ISO string
+  bookingTime?: string; // Maintain for backward compatibility with delete logic
 };
 
 export type FAQ = {
