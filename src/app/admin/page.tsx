@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { QRCodeCard } from "@/components/admin/qr-code-card";
 import { format } from "date-fns";
 import { FirebaseClientProvider } from "@/firebase";
+import { DailyReport } from "@/components/admin/daily-report";
 
 export default async function AdminPage() {
   const clinicData = await getClinicData();
@@ -34,6 +35,7 @@ export default async function AdminPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
                 <BookingsList bookings={bookings} clinicData={clinicData} />
+                <DailyReport clinicData={clinicData} />
             </div>
             <div className="space-y-8">
                 <QRCodeCard />

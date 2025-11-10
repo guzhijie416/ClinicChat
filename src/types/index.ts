@@ -55,4 +55,15 @@ export type Booking = {
   staffId: string;
   bookingTime: string; // ISO string
 };
-    
+
+export type DailyReportItem = {
+  therapistName: string;
+  serviceName: string;
+  price: number;
+};
+
+export type DailyReportData = {
+  date: string;
+  items: DailyReportItem[];
+  total: number;
+};
