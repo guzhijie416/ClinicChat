@@ -3,14 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, QrCode, MessageSquare, Settings, CalendarCheck } from 'lucide-react';
 import { Logo } from '@/components/logo';
-import { BookingAlert } from '@/components/admin/booking-alert';
 import { FirebaseClientProvider } from '@/firebase';
 
 export default function Home() {
   return (
     <FirebaseClientProvider>
       <div className="flex flex-col min-h-screen">
-        <BookingAlert />
         <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Logo className="h-8 w-8 text-primary" />
