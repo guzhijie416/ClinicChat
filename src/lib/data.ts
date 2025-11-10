@@ -186,13 +186,20 @@ export const getAllBookings = async (): Promise<Booking[]> => {
   
   const upcomingBookings = (db.bookings || []).filter(booking => {
     try {
+      // The bookingTime is a string like "2024-08-15T10:00"
+      // We only care about the date part for filtering.
       const bookingDate = parseISO(booking.bookingTime);
-      return bookingDate.getTime() >= today.getTime();
+      return bookingDate >= today;
     } catch (e) {
       console.error(`Invalid booking time format for booking ${booking.id}: ${booking.bookingTime}`);
       return false; 
     }
   });
 
-  return upcomingBookings.sort((a, b) => parseISO(a.bookingTime).getTime() - parseISO(b.bookingTime).getTime());
+  // Sort the filtered bookings by their time.
+  return upcomingBookings.sort((a, b) => {
+      const timeA = parseISO(a.bookingTime).getTime();
+      const timeB = parseISO(b.bookingTime).getTime();
+      return timeA - timeB;
+  });
 };
