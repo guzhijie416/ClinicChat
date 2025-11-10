@@ -1,12 +1,14 @@
+
 import { getClinicData, getAllBookings } from "@/lib/data";
 import { ClinicForm } from "@/components/admin/clinic-form";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Home, Ticket } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookingsList } from "@/components/admin/bookings-list";
 import { Separator } from "@/components/ui/separator";
 import { QRCodeCard } from "@/components/admin/qr-code-card";
+import { format } from "date-fns";
 
 export default async function AdminPage() {
   const clinicData = await getClinicData();
@@ -34,6 +36,35 @@ export default async function AdminPage() {
             </div>
             <div className="space-y-8">
                 <QRCodeCard />
+                {bookings.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Booking Alerts</CardTitle>
+                      <CardDescription>New appointments for today and the future.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {bookings.map(booking => {
+                        const service = clinicData.massageServices.find(s => s.id === booking.massageServiceId);
+                        const bookingTime = new Date(booking.bookingTime);
+                        return (
+                          <div key={booking.id} className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                            <div className="flex-shrink-0">
+                                <Ticket className="h-6 w-6 text-primary"/>
+                            </div>
+                            <div className="flex-grow">
+                                <p className="font-semibold">{booking.name}</p>
+                                <p className="text-sm text-muted-foreground">{service?.name || 'Unknown Service'}</p>
+                                <p className="text-xs text-muted-foreground">{format(bookingTime, 'PPP p')}</p>
+                            </div>
+                            <Button asChild size="sm" variant="secondary">
+                                <Link href={`/pass/${booking.id}`}>View Pass</Link>
+                            </Button>
+                          </div>
+                        )
+                      })}
+                    </CardContent>
+                  </Card>
+                )}
             </div>
         </div>
 

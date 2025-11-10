@@ -114,7 +114,6 @@ export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> =
         }
         // The values from JSON might be strings or numbers, so we compare loosely
         // or ensure types are consistent. `includes` does a strict comparison.
-        // Let's ensure we are comparing the same types.
         return staffSchedule.map(String).includes(String(dayOfWeek));
     });
 
@@ -183,21 +182,17 @@ export const getBooking = async (id: string): Promise<Booking | undefined> => {
 
 export const getAllBookings = async (): Promise<Booking[]> => {
   const db = await readDb();
-  // Get the start of today based on the server's local time.
   const today = startOfToday();
   
   const upcomingBookings = (db.bookings || []).filter(booking => {
     try {
       const bookingDate = parseISO(booking.bookingTime);
-      // Compare the booking date to the start of today.
-      // It should be after or on the same day.
-      return isAfter(bookingDate, today) || bookingDate.getTime() >= today.getTime();
+      return bookingDate.getTime() >= today.getTime();
     } catch (e) {
       console.error(`Invalid booking time format for booking ${booking.id}: ${booking.bookingTime}`);
-      return false; // Exclude bookings with invalid date formats
+      return false; 
     }
   });
 
-  // Return bookings sorted by date, soonest first
   return upcomingBookings.sort((a, b) => parseISO(a.bookingTime).getTime() - parseISO(b.bookingTime).getTime());
 };
