@@ -165,7 +165,12 @@ export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booki
     startTime: newBooking.bookingTime,
   };
 
+  // Ensure arrays exist before pushing
+  if (!db.bookings) {
+    db.bookings = [];
+  }
   db.bookings.push(newBooking);
+  
   if (!db.clinicData.sessions) {
     db.clinicData.sessions = [];
   }
