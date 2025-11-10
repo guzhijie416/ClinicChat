@@ -1,119 +1,114 @@
+import type { ClinicData, Booking, Staff, Session } from '@/types';
+import { addMinutes, getDay, isAfter, parseISO, startOfToday } from 'date-fns';
+import { initializeFirebase } from '@/firebase/client-only-init';
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  collection, 
+  addDoc, 
+  getDocs, 
+  deleteDoc,
+  query,
+  where,
+  Timestamp,
+  writeBatch
+} from 'firebase/firestore';
 
-import type { ClinicData, Booking, Staff, Session, WeeklySchedule } from '@/types';
-import { addMinutes, getDay, parseISO, startOfToday } from 'date-fns';
-import fs from 'fs/promises';
-import path from 'path';
-
-// This is a mock database using a JSON file for persistence.
-const DB_PATH = path.resolve(process.cwd(), 'db.json');
-
-type Db = {
-  clinicData: ClinicData;
-  bookings: Booking[];
-}
-
-const defaultData: Db = {
-  clinicData: {
-    name: 'Tranquil Wellness Spa',
-    address: '123 Zen Garden, Serenity City, SC 12345',
-    hours: 'Mon-Fri: 9am - 8pm, Sat: 10am - 6pm, Sun: Closed',
-    phone: '555-0101',
-    staff: [
-      { id: '1', name: 'Dr. Evelyn Reed' },
-      { id: '2', name: 'Marco Jimenez (RMT)' },
-      { id: '3', name: 'Aisha Chen (Acupuncturist)' },
-    ],
-    massageServices: [
-      { id: 'svc1', name: 'Swedish Massage', duration: 60, price: 70 },
-      { id: 'svc2', name: 'Deep Tissue Massage', duration: 60, price: 85 },
-      { id: 'svc3', name: 'Hot Stone Massage', duration: 90, price: 120 },
-    ],
-    sessions: [],
-    faq: [
-      { 
-        question: 'Do you offer couple massages?', 
-        answer: 'Yes, we have a dedicated suite for couple massages. Please book in advance to ensure availability.' 
-      },
-      { 
-        question: 'What is your cancellation policy?', 
-        answer: 'We require a 24-hour notice for any cancellations or rescheduling. A fee may apply for late cancellations.' 
-      },
-      {
-        question: 'What is deep tissue massage?',
-        answer: 'Deep tissue massage is a massage technique that\'s mainly used to treat musculoskeletal issues, such as strains and sports injuries. It involves applying sustained pressure using slow, deep strokes to target the inner layers of your muscles and connective tissues.'
-      }
-    ],
-    weeklySchedule: {
-      '1': [1,2,3,4,5], // Evelyn works Mon-Fri
-      '2': [1,2,3,4,5], // Marco works Mon-Fri
-      '3': [6,0]       // Aisha works Sat, Sun
+const defaultData: Omit<ClinicData, 'id'> = {
+  name: 'Tranquil Wellness Spa',
+  address: '123 Zen Garden, Serenity City, SC 12345',
+  hours: 'Mon-Fri: 9am - 8pm, Sat: 10am - 6pm, Sun: Closed',
+  phone: '555-0101',
+  staff: [
+    { id: '1', name: 'Dr. Evelyn Reed' },
+    { id: '2', name: 'Marco Jimenez (RMT)' },
+    { id: '3', name: 'Aisha Chen (Acupuncturist)' },
+  ],
+  massageServices: [
+    { id: 'svc1', name: 'Swedish Massage', duration: 60, price: 70 },
+    { id: 'svc2', name: 'Deep Tissue Massage', duration: 60, price: 85 },
+    { id: 'svc3', name: 'Hot Stone Massage', duration: 90, price: 120 },
+  ],
+  sessions: [],
+  faq: [
+    { 
+      id: 'faq1',
+      question: 'Do you offer couple massages?', 
+      answer: 'Yes, we have a dedicated suite for couple massages. Please book in advance to ensure availability.' 
+    },
+    { 
+      id: 'faq2',
+      question: 'What is your cancellation policy?', 
+      answer: 'We require a 24-hour notice for any cancellations or rescheduling. A fee may apply for late cancellations.' 
+    },
+    {
+      id: 'faq3',
+      question: 'What is deep tissue massage?',
+      answer: 'Deep tissue massage is a massage technique that\'s mainly used to treat musculoskeletal issues, such as strains and sports injuries. It involves applying sustained pressure using slow, deep strokes to target the inner layers of your muscles and connective tissues.'
     }
-  },
-  bookings: []
+  ],
+  weeklySchedule: {
+    '1': [1,2,3,4,5], // Evelyn works Mon-Fri
+    '2': [1,2,3,4,5], // Marco works Mon-Fri
+    '3': [6,0]       // Aisha works Sat, Sun
+  }
 };
 
-async function readDb(): Promise<Db> {
-  try {
-    const data = await fs.readFile(DB_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      // File doesn't exist, so write the default data and return it
-      await fs.writeFile(DB_PATH, JSON.stringify(defaultData, null, 2), 'utf-8');
-      return defaultData;
-    }
-    console.error("Failed to read database:", error);
-    // Return default data as a fallback in case of other read errors
-    return defaultData;
-  }
-}
-
-async function writeDb(data: Db): Promise<void> {
-  try {
-    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (error) {
-    console.error("Failed to write to database:", error);
-    throw new Error("Could not write to the database.");
-  }
+const getDb = () => {
+  const { firestore } = initializeFirebase();
+  return firestore;
 }
 
 export const getClinicData = async (): Promise<ClinicData> => {
-  const db = await readDb();
-  return db.clinicData;
+  const db = getDb();
+  const clinicDocRef = doc(db, 'clinic', 'main');
+  const clinicDocSnap = await getDoc(clinicDocRef);
+
+  if (!clinicDocSnap.exists()) {
+    console.log("No clinic data found, creating default data.");
+    await setDoc(clinicDocRef, defaultData);
+    return { id: 'main', ...defaultData };
+  }
+
+  return { id: clinicDocSnap.id, ...clinicDocSnap.data() } as ClinicData;
 };
 
-export const updateClinicData = async (data: ClinicData): Promise<ClinicData> => {
-  const db = await readDb();
+export const updateClinicData = async (data: Partial<ClinicData>): Promise<void> => {
+  const db = getDb();
+  const clinicDocRef = doc(db, 'clinic', 'main');
+  
   const schedule = data.weeklySchedule || {};
-  for (const staffMember of data.staff) {
-    if (!schedule[staffMember.id]) {
-      schedule[staffMember.id] = [];
+  if (data.staff) {
+    for (const staffMember of data.staff) {
+      if (!schedule[staffMember.id]) {
+        schedule[staffMember.id] = [];
+      }
     }
   }
-  db.clinicData = {...data, weeklySchedule: schedule};
-  await writeDb(db);
-  return db.clinicData;
+  
+  const dataToUpdate = { ...data, weeklySchedule: schedule };
+  await setDoc(clinicDocRef, dataToUpdate, { merge: true });
 };
 
 export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> => {
-    const db = await readDb();
-    const dayOfWeek = getDay(forDate); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+    const clinicData = await getClinicData();
+    const dayOfWeek = getDay(forDate);
 
-    if (!db.clinicData || !db.clinicData.staff || !db.clinicData.weeklySchedule) {
-        console.error("Staff list or weekly schedule is missing or invalid in db.json");
+    if (!clinicData || !clinicData.staff || !clinicData.weeklySchedule) {
+        console.error("Staff list or weekly schedule is missing or invalid in Firestore.");
         return [];
     }
     
-    const staff = db.clinicData.staff;
-    const weeklySchedule = db.clinicData.weeklySchedule;
+    const staff = clinicData.staff;
+    const weeklySchedule = clinicData.weeklySchedule;
 
     const scheduledStaff = staff.filter(staffMember => {
         const staffSchedule = weeklySchedule[staffMember.id];
         if (!Array.isArray(staffSchedule)) {
             return false;
         }
-        // The values from JSON might be strings or numbers, so we compare loosely
-        // or ensure types are consistent. `includes` does a strict comparison.
         return staffSchedule.map(String).includes(String(dayOfWeek));
     });
 
@@ -123,12 +118,9 @@ export const getScheduledStaffForDay = async (forDate: Date): Promise<Staff[]> =
 export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
   const aDate = forDate ? new Date(forDate) : new Date();
   
-  // 1. Get staff scheduled to work on the given day
   const scheduledStaff = await getScheduledStaffForDay(aDate);
-  
   const { sessions, massageServices } = await getClinicData();
 
-  // 2. Filter out staff who are busy with one-off sessions
   const busyStaffIds = new Set(
     (sessions || [])
       .filter(session => {
@@ -138,7 +130,6 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
         try {
           const startTime = parseISO(session.startTime);
           const endTime = addMinutes(startTime, service.duration);
-          // Check if the requested time `aDate` falls within an existing session
           return aDate >= startTime && aDate < endTime;
         } catch(e){
           console.error(`Invalid date format for session ${session.id}: ${session.startTime}`);
@@ -151,73 +142,93 @@ export const getAvailableStaff = async (forDate?: Date): Promise<Staff[]> => {
   return scheduledStaff.filter(staffMember => !busyStaffIds.has(staffMember.id));
 };
 
-export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<Booking> => {
-  const db = await readDb();
+export const createBooking = async (bookingData: Omit<Booking, 'id'>): Promise<Booking> => {
+  const db = getDb();
+  const batch = writeBatch(db);
+
+  // 1. Create a new booking document
+  const newBookingRef = doc(collection(db, 'bookings'));
   const newBooking: Booking = {
-    id: `booking-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    ...booking
+    id: newBookingRef.id,
+    ...bookingData,
   };
-  
-  // Ensure arrays exist before pushing
-  if (!db.bookings) {
-    db.bookings = [];
-  }
-  
-  if (!db.clinicData.sessions) {
-    db.clinicData.sessions = [];
-  }
-  
-  const newSession: Session = {
-    id: `session-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    staffId: newBooking.staffId,
-    massageServiceId: newBooking.massageServiceId,
-    startTime: newBooking.bookingTime,
-  };
+  batch.set(newBookingRef, newBooking);
 
-  db.bookings.push(newBooking);
-  db.clinicData.sessions.push(newSession);
+  // 2. Create a corresponding session document
+  const clinicData = await getClinicData();
+  const updatedSessions = [
+    ...(clinicData.sessions || []),
+    {
+      id: `session-${newBooking.id}`, // Link session to booking
+      staffId: newBooking.staffId,
+      massageServiceId: newBooking.massageServiceId,
+      startTime: newBooking.bookingTime,
+    }
+  ];
 
-  await writeDb(db);
+  const clinicDocRef = doc(db, 'clinic', 'main');
+  batch.update(clinicDocRef, { sessions: updatedSessions });
+  
+  // 3. Commit the batch
+  await batch.commit();
+  
   return newBooking;
 }
 
+
 export const getBooking = async (id: string): Promise<Booking | undefined> => {
-  const db = await readDb();
-  return db.bookings.find(b => b.id === id);
+  const db = getDb();
+  const bookingDocRef = doc(db, 'bookings', id);
+  const docSnap = await getDoc(bookingDocRef);
+
+  if (!docSnap.exists()) {
+    return undefined;
+  }
+  return { id: docSnap.id, ...docSnap.data() } as Booking;
 }
 
 export const getAllBookings = async (): Promise<Booking[]> => {
-  const db = await readDb();
+  const db = getDb();
+  const bookingsCol = collection(db, 'bookings');
   
-  // Return all bookings, sorted by time, with no date filtering.
-  return (db.bookings || []).sort((a, b) => {
-      try {
-        const timeA = parseISO(a.bookingTime).getTime();
-        const timeB = parseISO(b.bookingTime).getTime();
-        return timeA - timeB;
-      } catch (e) {
-        // Handle cases where bookingTime might be invalid
-        return 0;
-      }
+  // No date filtering, fetches all bookings.
+  const bookingSnapshot = await getDocs(bookingsCol);
+  
+  const bookings = bookingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Booking));
+  
+  return bookings.sort((a, b) => {
+    try {
+      const timeA = parseISO(a.bookingTime).getTime();
+      const timeB = parseISO(b.bookingTime).getTime();
+      return timeA - timeB; // Sort ascending
+    } catch (e) {
+      return 0;
+    }
   });
 };
 
 export const deleteBooking = async (id: string): Promise<{success: boolean}> => {
-  const db = await readDb();
-  
-  const bookingToDelete = db.bookings.find(b => b.id === id);
-  if (!bookingToDelete) {
+  const db = getDb();
+  const batch = writeBatch(db);
+
+  const bookingRef = doc(db, 'bookings', id);
+  const booking = await getBooking(id); // We need the booking details to find the session
+
+  if (!booking) {
     return { success: false };
   }
 
-  // Filter out the booking
-  db.bookings = db.bookings.filter(b => b.id !== id);
+  // 1. Delete the booking document
+  batch.delete(bookingRef);
 
-  // Filter out the corresponding session
-  db.clinicData.sessions = db.clinicData.sessions.filter(s => 
-    !(s.bookingTime === bookingToDelete.bookingTime && s.staffId === bookingToDelete.staffId && s.massageServiceId === bookingToDelete.massageServiceId)
-  );
+  // 2. Remove the corresponding session from the clinic document
+  const clinicData = await getClinicData();
+  const updatedSessions = clinicData.sessions.filter(s => s.id !== `session-${id}`);
+  const clinicDocRef = doc(db, 'clinic', 'main');
+  batch.update(clinicDocRef, { sessions: updatedSessions });
 
-  await writeDb(db);
+  // 3. Commit the batch
+  await batch.commit();
+
   return { success: true };
 }

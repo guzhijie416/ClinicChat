@@ -1,4 +1,3 @@
-
 import { getClinicData, getAllBookings } from "@/lib/data";
 import { ClinicForm } from "@/components/admin/clinic-form";
 import { Button } from "@/components/ui/button";
@@ -9,12 +8,14 @@ import { BookingsList } from "@/components/admin/bookings-list";
 import { Separator } from "@/components/ui/separator";
 import { QRCodeCard } from "@/components/admin/qr-code-card";
 import { format } from "date-fns";
+import { FirebaseClientProvider } from "@/firebase";
 
 export default async function AdminPage() {
   const clinicData = await getClinicData();
   const bookings = await getAllBookings();
 
   return (
+    <FirebaseClientProvider>
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
@@ -82,5 +83,6 @@ export default async function AdminPage() {
         </Card>
       </div>
     </div>
+    </FirebaseClientProvider>
   );
 }

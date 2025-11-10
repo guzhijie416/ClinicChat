@@ -9,6 +9,7 @@ import ChatMessages from '@/components/chat/chat-messages';
 import ChatInput from '@/components/chat/chat-input';
 import { getClinicDataForClient } from '@/app/actions/data';
 import type { ClinicData } from '@/types';
+import { FirebaseClientProvider } from '@/firebase';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -55,12 +56,14 @@ export default function ChatPage() {
   const displayMessages = clinicInfo ? [initialMessage, ...messages] : [];
 
   return (
-    <ChatLayout clinicName={clinicInfo?.name || 'Clinic Chat'}>
-      <ChatMessages
-        messages={displayMessages}
-        isLoading={isPending}
-      />
-      <ChatInput onSend={handleSend} isLoading={isPending} />
-    </ChatLayout>
+    <FirebaseClientProvider>
+      <ChatLayout clinicName={clinicInfo?.name || 'Clinic Chat'}>
+        <ChatMessages
+          messages={displayMessages}
+          isLoading={isPending}
+        />
+        <ChatInput onSend={handleSend} isLoading={isPending} />
+      </ChatLayout>
+    </FirebaseClientProvider>
   );
 }
