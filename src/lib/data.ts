@@ -1,6 +1,6 @@
 
 import type { ClinicData, Booking, Staff, Session, WeeklySchedule } from '@/types';
-import { addMinutes, isAfter, getDay, parseISO, startOfToday } from 'date-fns';
+import { addMinutes, getDay, parseISO, startOfToday } from 'date-fns';
 import fs from 'fs/promises';
 import path from 'path';
 
